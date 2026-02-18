@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -16,6 +17,20 @@ export default function Home() {
         <p className="max-w-md text-lg text-zinc-600 dark:text-zinc-400">
           Reconnecting Hellcats &amp; Widowmakers
         </p>
+        <div className="flex gap-4">
+          <Link
+            href="/login"
+            className="rounded-md bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-md border border-zinc-300 px-6 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          >
+            Register
+          </Link>
+        </div>
       </main>
     </div>
   );
