@@ -5,8 +5,10 @@ import { APIError } from "better-call";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
 import { admin } from "better-auth/plugins/admin";
+import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { sendVerificationEmail } from "@/lib/email";
 
 const ALPHANUMERIC_RE = /^[a-zA-Z0-9]+$/;
 
@@ -42,6 +44,25 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     autoSignIn: true,
+    requireEmailVerification: true,
+  },
+
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 3600,
+    async sendVerificationEmail({ user, url }) {
+      // If there's an unused invite for this email, skip verification email
+      const invite = await db.query.inviteToken.findFirst({
+        where: and(
+          eq(schema.inviteToken.email, user.email),
+          eq(schema.inviteToken.used, false),
+        ),
+      });
+      if (invite) return;
+
+      await sendVerificationEmail({ email: user.email, url });
+    },
   },
 
   session: {
