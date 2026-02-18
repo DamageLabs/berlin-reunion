@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useSession, authClient } from "@/lib/auth-client";
 
 interface UserRecord {
@@ -68,7 +67,7 @@ export default function AdminPage() {
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-zinc-500">Loading...</p>
+        <p className="text-sm text-silver">Loading...</p>
       </div>
     );
   }
@@ -111,11 +110,8 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <Link href="/hello" className="text-sm font-medium underline">
-          Back
-        </Link>
       </div>
 
       {/* Send Invite */}
@@ -128,12 +124,12 @@ export default function AdminPage() {
             placeholder="Email address"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            className="flex-1 min-w-[200px] rounded-md border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900"
+            className="flex-1 min-w-[200px] rounded-md border border-silver px-3 py-2 text-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
           />
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value)}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-md border border-silver px-3 py-2 text-sm dark:border-silver/30 dark:bg-navy-light"
           >
             <option value="user">User</option>
             {role === "admin" && (
@@ -146,18 +142,18 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={inviteLoading}
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
           >
             {inviteLoading ? "Sending..." : "Send Invite"}
           </button>
         </form>
         {inviteError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+          <p className="mt-2 text-sm text-crimson">
             {inviteError}
           </p>
         )}
         {inviteSuccess && (
-          <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+          <p className="mt-2 text-sm text-field-green">
             {inviteSuccess}
           </p>
         )}
@@ -171,7 +167,7 @@ export default function AdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800">
+              <tr className="border-b border-silver/30 dark:border-silver/20">
                 <th className="pb-2 pr-4 font-medium">Name</th>
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Username</th>
@@ -183,10 +179,10 @@ export default function AdminPage() {
               {users.map((u) => (
                 <tr
                   key={u.id}
-                  className="border-b border-zinc-100 dark:border-zinc-800/50"
+                  className="border-b border-silver/20 dark:border-silver/10"
                 >
                   <td className="py-2 pr-4">{u.name}</td>
-                  <td className="py-2 pr-4 text-zinc-500">{u.email}</td>
+                  <td className="py-2 pr-4 text-silver">{u.email}</td>
                   <td className="py-2 pr-4">{u.username ?? "—"}</td>
                   <td className="py-2 pr-4 capitalize">{u.role ?? "user"}</td>
                   <td className="py-2">
@@ -207,7 +203,7 @@ export default function AdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800">
+              <tr className="border-b border-silver/30 dark:border-silver/20">
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
                 <th className="pb-2 pr-4 font-medium">Status</th>
@@ -218,7 +214,7 @@ export default function AdminPage() {
               {invites.map((inv) => (
                 <tr
                   key={inv.id}
-                  className="border-b border-zinc-100 dark:border-zinc-800/50"
+                  className="border-b border-silver/20 dark:border-silver/10"
                 >
                   <td className="py-2 pr-4">{inv.email}</td>
                   <td className="py-2 pr-4 capitalize">{inv.role}</td>
@@ -229,7 +225,7 @@ export default function AdminPage() {
                         ? "Expired"
                         : "Pending"}
                   </td>
-                  <td className="py-2 text-zinc-500">
+                  <td className="py-2 text-silver">
                     {new Date(inv.expiresAt).toLocaleDateString()}
                   </td>
                 </tr>
