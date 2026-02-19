@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { db } from "@/db";
+import { user } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { logAuditEvent } from "@/lib/audit";
 
 const ALLOWED_ROLES = ["user", "moderator", "admin"];
 
@@ -43,10 +47,25 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   try {
+    // Fetch old role before changing
+    const [targetUser] = await db
+      .select({ role: user.role })
+      .from(user)
+      .where(eq(user.id, targetUserId));
+    const oldRole = targetUser?.role ?? "user";
+
     const result = await auth.api.setRole({
       headers: await headers(),
       body: { userId: targetUserId, role: role as "user" | "admin" },
     });
+
+    await logAuditEvent({
+      action: "role.change",
+      actorId: session.user.id,
+      targetId: targetUserId,
+      detail: { oldRole, newRole: role },
+    });
+
     return NextResponse.json({ user: result.user });
   } catch (err: unknown) {
     const message =

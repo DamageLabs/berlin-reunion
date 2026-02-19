@@ -55,6 +55,11 @@ vi.mock("@/lib/email", () => ({
     mockSendVerificationCodeEmail(...args),
 }));
 
+const mockLogAuditEvent = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/audit", () => ({
+  logAuditEvent: (...args: unknown[]) => mockLogAuditEvent(...args),
+}));
+
 // Import from the [token] route, not the parent
 import { GET, POST, DELETE } from "../../[token]/route";
 
@@ -358,6 +363,12 @@ describe("DELETE /api/invites/[token] (revoke)", () => {
     expect(body.success).toBe(true);
     expect(mockUpdate).toHaveBeenCalled();
     expect(mockUpdateSet).toHaveBeenCalledWith({ used: true });
+    expect(mockLogAuditEvent).toHaveBeenCalledWith({
+      action: "invite.revoke",
+      actorId: "a1",
+      targetEmail: "invitee@example.com",
+      detail: { token: "valid-token", role: "user" },
+    });
   });
 
   it("returns 200 when moderator revokes pending invite", async () => {

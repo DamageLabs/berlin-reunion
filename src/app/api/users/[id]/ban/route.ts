@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { user, session } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { logAuditEvent } from "@/lib/audit";
 
 const ROLE_HIERARCHY: Record<string, number> = {
   user: 0,
@@ -83,6 +84,13 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Terminate all sessions for the banned user
     await db.delete(session).where(eq(session.userId, targetUserId));
 
+    await logAuditEvent({
+      action: "user.ban",
+      actorId: currentSession.user.id,
+      targetId: targetUserId,
+      detail: { reason: reason ?? null, expiresInDays: expiresInDays ?? null },
+    });
+
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const message =
@@ -124,6 +132,12 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
         updatedAt: new Date(),
       })
       .where(eq(user.id, targetUserId));
+
+    await logAuditEvent({
+      action: "user.unban",
+      actorId: currentSession.user.id,
+      targetId: targetUserId,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { inviteToken, user, emailVerificationCode } from "@/db/schema";
+import { logAuditEvent } from "@/lib/audit";
 import { generateVerificationCode, hashCode, EXPIRY_MS } from "@/lib/verification-code";
 import { sendVerificationCodeEmail } from "@/lib/email";
 
@@ -203,6 +204,13 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     .update(inviteToken)
     .set({ used: true })
     .where(eq(inviteToken.id, invite.id));
+
+  await logAuditEvent({
+    action: "invite.revoke",
+    actorId: session.user.id,
+    targetEmail: invite.email ?? undefined,
+    detail: { token, role: invite.role },
+  });
 
   return NextResponse.json({ success: true });
 }

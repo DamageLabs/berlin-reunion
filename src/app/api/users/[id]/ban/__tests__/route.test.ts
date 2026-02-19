@@ -41,6 +41,11 @@ vi.mock("drizzle-orm", () => ({
   eq: (col: unknown, val: unknown) => ({ col, val }),
 }));
 
+const mockLogAuditEvent = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/audit", () => ({
+  logAuditEvent: (...args: unknown[]) => mockLogAuditEvent(...args),
+}));
+
 import { POST, DELETE } from "../route";
 
 // --- Helpers ---
@@ -157,6 +162,12 @@ describe("POST /api/users/[id]/ban", () => {
       expect.objectContaining({ banned: true, banReason: "spam" }),
     );
     expect(mockDelete).toHaveBeenCalled();
+    expect(mockLogAuditEvent).toHaveBeenCalledWith({
+      action: "user.ban",
+      actorId: "admin-1",
+      targetId: "user-1",
+      detail: { reason: "spam", expiresInDays: null },
+    });
   });
 
   it("returns 200 when moderator bans user", async () => {
@@ -272,6 +283,11 @@ describe("DELETE /api/users/[id]/ban", () => {
         banExpires: null,
       }),
     );
+    expect(mockLogAuditEvent).toHaveBeenCalledWith({
+      action: "user.unban",
+      actorId: "admin-1",
+      targetId: "user-1",
+    });
   });
 
   it("returns 200 when moderator unbans", async () => {

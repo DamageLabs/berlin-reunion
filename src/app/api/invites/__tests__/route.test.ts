@@ -53,6 +53,11 @@ vi.mock("crypto", async () => {
   };
 });
 
+const mockLogAuditEvent = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/audit", () => ({
+  logAuditEvent: (...args: unknown[]) => mockLogAuditEvent(...args),
+}));
+
 import { POST, GET } from "../route";
 
 // --- Helpers ---
@@ -157,6 +162,12 @@ describe("POST /api/invites", () => {
         role: "moderator",
       }),
     );
+    expect(mockLogAuditEvent).toHaveBeenCalledWith({
+      action: "invite.create",
+      actorId: "u1",
+      targetEmail: "new@b.com",
+      detail: { role: "moderator", token: "test-uuid-1234" },
+    });
   });
 
   it("defaults role to 'user' when not specified", async () => {

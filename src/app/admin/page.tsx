@@ -255,8 +255,16 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        {role === "admin" && (
+          <Link
+            href="/admin/audit"
+            className="text-sm text-silver hover:text-gold"
+          >
+            Audit Log
+          </Link>
+        )}
       </div>
 
       {/* Send Invite */}

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { inviteToken, user } from "@/db/schema";
 import { sendInviteEmail } from "@/lib/email";
 import { headers } from "next/headers";
+import { logAuditEvent } from "@/lib/audit";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const ALLOWED_ROLES = ["user", "moderator", "admin"];
@@ -87,6 +88,13 @@ export async function POST(request: NextRequest) {
     inviterName: currentUser.name,
     token,
     role,
+  });
+
+  await logAuditEvent({
+    action: "invite.create",
+    actorId: currentUser.id,
+    targetEmail: email,
+    detail: { role, token },
   });
 
   return NextResponse.json({ token, email, role, expiresAt }, { status: 201 });
