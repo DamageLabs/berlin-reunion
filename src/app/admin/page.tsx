@@ -16,6 +16,9 @@ interface UserRecord {
   createdAt: string;
   image?: string;
   location?: string;
+  banned?: boolean;
+  banReason?: string;
+  banExpires?: string;
 }
 
 interface Invite {
@@ -41,6 +44,11 @@ export default function AdminPage() {
   const [inviteSuccess, setInviteSuccess] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [roleError, setRoleError] = useState("");
+
+  const [banTarget, setBanTarget] = useState<UserRecord | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [banDuration, setBanDuration] = useState("permanent");
+  const [banError, setBanError] = useState("");
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
@@ -80,6 +88,79 @@ export default function AdminPage() {
   if (!session || (role !== "admin" && role !== "moderator")) {
     router.push("/hello");
     return null;
+  }
+
+  const ROLE_HIERARCHY: Record<string, number> = {
+    user: 0,
+    moderator: 1,
+    admin: 2,
+  };
+  const callerLevel = ROLE_HIERARCHY[role] ?? 0;
+
+  async function handleBan() {
+    if (!banTarget) return;
+    setBanError("");
+    try {
+      const body: { reason?: string; expiresInDays?: number } = {};
+      if (banReason.trim()) body.reason = banReason.trim();
+      if (banDuration !== "permanent") body.expiresInDays = Number(banDuration);
+
+      const res = await fetch(`/api/users/${banTarget.id}/ban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setBanError(data.error ?? "Failed to ban user");
+        return;
+      }
+      const banExpires =
+        banDuration !== "permanent"
+          ? new Date(
+              Date.now() + Number(banDuration) * 86400000,
+            ).toISOString()
+          : undefined;
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === banTarget.id
+            ? {
+                ...u,
+                banned: true,
+                banReason: banReason.trim() || undefined,
+                banExpires,
+              }
+            : u,
+        ),
+      );
+      setBanTarget(null);
+      setBanReason("");
+      setBanDuration("permanent");
+    } catch {
+      setBanError("Failed to ban user");
+    }
+  }
+
+  async function handleUnban(userId: string) {
+    try {
+      const res = await fetch(`/api/users/${userId}/ban`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setRoleError(data.error ?? "Failed to unban user");
+        return;
+      }
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, banned: false, banReason: undefined, banExpires: undefined }
+            : u,
+        ),
+      );
+    } catch {
+      setRoleError("Failed to unban user");
+    }
   }
 
   async function handleInvite(e: React.FormEvent) {
@@ -203,7 +284,9 @@ export default function AdminPage() {
                 <th className="pb-2 pr-4 font-medium">Username</th>
                 <th className="pb-2 pr-4 font-medium">Location</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
-                <th className="pb-2 font-medium">Verified</th>
+                <th className="pb-2 pr-4 font-medium">Verified</th>
+                <th className="pb-2 pr-4 font-medium">Status</th>
+                <th className="pb-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -251,8 +334,47 @@ export default function AdminPage() {
                       <span className="capitalize">{u.role ?? "user"}</span>
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2 pr-4">
                     {u.emailVerified ? "Yes" : "No"}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {u.banned ? (
+                      <span className="text-crimson font-medium" title={
+                        [u.banReason, u.banExpires ? `Expires: ${new Date(u.banExpires).toLocaleDateString()}` : null].filter(Boolean).join(" — ")
+                      }>
+                        Banned
+                        {u.banExpires && (
+                          <span className="ml-1 text-xs text-silver">
+                            until {new Date(u.banExpires).toLocaleDateString()}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-field-green">Active</span>
+                    )}
+                  </td>
+                  <td className="py-2">
+                    {u.id !== session.user.id &&
+                      (ROLE_HIERARCHY[u.role ?? "user"] ?? 0) < callerLevel && (
+                        u.banned ? (
+                          <button
+                            onClick={() => handleUnban(u.id)}
+                            className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
+                          >
+                            Unban
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setBanTarget(u);
+                              setBanError("");
+                            }}
+                            className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
+                          >
+                            Ban
+                          </button>
+                        )
+                      )}
                   </td>
                 </tr>
               ))}
@@ -300,6 +422,66 @@ export default function AdminPage() {
           </table>
         </div>
       </section>
+
+      {/* Ban Modal */}
+      {banTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-navy-light">
+            <h3 className="mb-4 text-lg font-semibold">
+              Ban {banTarget.name}?
+            </h3>
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium">
+                Reason (optional)
+              </label>
+              <input
+                type="text"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                placeholder="e.g. Spam, harassment"
+                className="w-full rounded-md border border-silver px-3 py-2 text-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium">
+                Duration
+              </label>
+              <select
+                value={banDuration}
+                onChange={(e) => setBanDuration(e.target.value)}
+                className="w-full rounded-md border border-silver px-3 py-2 text-sm dark:border-silver/30 dark:bg-navy"
+              >
+                <option value="permanent">Permanent</option>
+                <option value="1">1 day</option>
+                <option value="7">7 days</option>
+                <option value="30">30 days</option>
+              </select>
+            </div>
+            {banError && (
+              <p className="mb-3 text-sm text-crimson">{banError}</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setBanTarget(null);
+                  setBanReason("");
+                  setBanDuration("permanent");
+                  setBanError("");
+                }}
+                className="rounded-md border border-silver px-4 py-2 text-sm hover:bg-silver/10 dark:border-silver/30"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBan}
+                className="rounded-md bg-crimson px-4 py-2 text-sm font-medium text-white hover:bg-crimson/90"
+              >
+                Confirm Ban
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
