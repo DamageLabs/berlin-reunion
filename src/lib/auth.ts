@@ -9,8 +9,7 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendVerificationEmail } from "@/lib/email";
-
-const PRINTABLE_RE = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~ ]+$/;
+import { PRINTABLE_RE } from "@/lib/password-rules";
 
 const validatePassword = createAuthMiddleware(async (ctx) => {
   if (
