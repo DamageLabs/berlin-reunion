@@ -49,7 +49,6 @@ export default function AdminPage() {
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState("permanent");
   const [banError, setBanError] = useState("");
-  const [revokeError, setRevokeError] = useState("");
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
@@ -161,28 +160,6 @@ export default function AdminPage() {
       );
     } catch {
       setRoleError("Failed to unban user");
-    }
-  }
-
-  async function handleRevoke(token: string, email: string) {
-    if (!window.confirm(`Revoke invite to ${email}?`)) return;
-    setRevokeError("");
-    try {
-      const res = await fetch(`/api/invites/${token}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setRevokeError(data.error ?? "Failed to revoke invite");
-        return;
-      }
-      setInvites((prev) =>
-        prev.map((inv) =>
-          inv.token === token ? { ...inv, used: true } : inv,
-        ),
-      );
-    } catch {
-      setRevokeError("Failed to revoke invite");
     }
   }
 
@@ -411,9 +388,6 @@ export default function AdminPage() {
         <h2 className="mb-4 text-lg font-semibold">
           Invites ({invites.length})
         </h2>
-        {revokeError && (
-          <p className="mb-3 text-sm text-crimson">{revokeError}</p>
-        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -421,44 +395,29 @@ export default function AdminPage() {
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
                 <th className="pb-2 pr-4 font-medium">Status</th>
-                <th className="pb-2 pr-4 font-medium">Expires</th>
-                <th className="pb-2 font-medium">Actions</th>
+                <th className="pb-2 font-medium">Expires</th>
               </tr>
             </thead>
             <tbody>
-              {invites.map((inv) => {
-                const isPending =
-                  !inv.used && new Date(inv.expiresAt) >= new Date();
-                return (
-                  <tr
-                    key={inv.id}
-                    className="border-b border-silver/20 dark:border-silver/10"
-                  >
-                    <td className="py-2 pr-4">{inv.email}</td>
-                    <td className="py-2 pr-4 capitalize">{inv.role}</td>
-                    <td className="py-2 pr-4">
-                      {inv.used
-                        ? "Used"
-                        : new Date(inv.expiresAt) < new Date()
-                          ? "Expired"
-                          : "Pending"}
-                    </td>
-                    <td className="py-2 pr-4 text-silver">
-                      {new Date(inv.expiresAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-2">
-                      {isPending && (
-                        <button
-                          onClick={() => handleRevoke(inv.token, inv.email)}
-                          className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
-                        >
-                          Revoke
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {invites.map((inv) => (
+                <tr
+                  key={inv.id}
+                  className="border-b border-silver/20 dark:border-silver/10"
+                >
+                  <td className="py-2 pr-4">{inv.email}</td>
+                  <td className="py-2 pr-4 capitalize">{inv.role}</td>
+                  <td className="py-2 pr-4">
+                    {inv.used
+                      ? "Used"
+                      : new Date(inv.expiresAt) < new Date()
+                        ? "Expired"
+                        : "Pending"}
+                  </td>
+                  <td className="py-2 text-silver">
+                    {new Date(inv.expiresAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

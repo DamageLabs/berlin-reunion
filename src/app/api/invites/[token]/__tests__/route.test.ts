@@ -7,12 +7,10 @@ vi.mock("next/headers", () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),
 }));
 
-const mockGetSession = vi.fn();
 const mockSignUpEmail = vi.fn();
 vi.mock("@/lib/auth", () => ({
   auth: {
     api: {
-      getSession: (...args: unknown[]) => mockGetSession(...args),
       signUpEmail: (...args: unknown[]) => mockSignUpEmail(...args),
     },
   },
@@ -56,7 +54,7 @@ vi.mock("@/lib/email", () => ({
 }));
 
 // Import from the [token] route, not the parent
-import { GET, POST, DELETE } from "../../[token]/route";
+import { GET, POST } from "../../[token]/route";
 
 // --- Helpers ---
 
@@ -263,114 +261,5 @@ describe("POST /api/invites/[token] (accept)", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toBe("Username already taken");
-  });
-});
-
-// --- DELETE (revoke) tests ---
-
-function makeDeleteRequest(token: string) {
-  return new NextRequest(`http://localhost:3000/api/invites/${token}`, {
-    method: "DELETE",
-  });
-}
-
-describe("DELETE /api/invites/[token] (revoke)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockUpdateWhere.mockResolvedValue(undefined);
-    mockUpdateSet.mockReturnValue({ where: mockUpdateWhere });
-    mockUpdate.mockReturnValue({ set: mockUpdateSet });
-  });
-
-  it("returns 401 when unauthenticated", async () => {
-    mockGetSession.mockResolvedValue(null);
-    const res = await DELETE(
-      makeDeleteRequest("some-token"),
-      makeParams("some-token"),
-    );
-    expect(res.status).toBe(401);
-  });
-
-  it("returns 403 for regular user", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "u1", name: "User", role: "user" },
-    });
-    const res = await DELETE(
-      makeDeleteRequest("some-token"),
-      makeParams("some-token"),
-    );
-    expect(res.status).toBe(403);
-  });
-
-  it("returns 404 when invite not found", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "a1", name: "Admin", role: "admin" },
-    });
-    mockQueryFindFirst.mockResolvedValue(undefined);
-    const res = await DELETE(
-      makeDeleteRequest("missing"),
-      makeParams("missing"),
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("returns 400 when invite already used", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "a1", name: "Admin", role: "admin" },
-    });
-    mockQueryFindFirst.mockResolvedValue(validInvite({ used: true }));
-    const res = await DELETE(
-      makeDeleteRequest("used-token"),
-      makeParams("used-token"),
-    );
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toContain("already used");
-  });
-
-  it("returns 400 when invite already expired", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "a1", name: "Admin", role: "admin" },
-    });
-    mockQueryFindFirst.mockResolvedValue(
-      validInvite({ expiresAt: new Date(Date.now() - 1000) }),
-    );
-    const res = await DELETE(
-      makeDeleteRequest("expired-token"),
-      makeParams("expired-token"),
-    );
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error).toContain("already expired");
-  });
-
-  it("returns 200 when admin revokes pending invite", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "a1", name: "Admin", role: "admin" },
-    });
-    mockQueryFindFirst.mockResolvedValue(validInvite());
-    const res = await DELETE(
-      makeDeleteRequest("valid-token"),
-      makeParams("valid-token"),
-    );
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(mockUpdate).toHaveBeenCalled();
-    expect(mockUpdateSet).toHaveBeenCalledWith({ used: true });
-  });
-
-  it("returns 200 when moderator revokes pending invite", async () => {
-    mockGetSession.mockResolvedValue({
-      user: { id: "m1", name: "Mod", role: "moderator" },
-    });
-    mockQueryFindFirst.mockResolvedValue(validInvite());
-    const res = await DELETE(
-      makeDeleteRequest("valid-token"),
-      makeParams("valid-token"),
-    );
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
   });
 });
