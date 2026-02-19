@@ -6,8 +6,9 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 
 | Order | Issue | Rationale |
 |-------|-------|-----------|
-| 1 | **#36** Restrict registration to invite-only | The app is a closed community but registration is currently open to anyone. This is the most critical gap — everything else assumes a trusted user base. |
-| 2 | **#29** Rate limiting on auth endpoints | Brute force protection. Should be in place before more users are onboarded. |
+| 1 | ~~**#36** Restrict registration to invite-only~~ | ~~The app is a closed community but registration is currently open to anyone. This is the most critical gap — everything else assumes a trusted user base.~~ |
+| 2 | ~~**#29** Rate limiting on auth endpoints~~ | ~~Brute force protection. Should be in place before more users are onboarded.~~ |
+| 2a | ~~**#44** Email verification via 8-digit code~~ | ~~Replace auto-verify on invite accept with an 8-digit alphanumeric code sent via email. Proves email ownership before granting access.~~ |
 | 3 | **#19** Forgot/reset password flow | Core auth flow. Without it, locked-out users have no recovery path. Blocks real usage. |
 
 ## Tier 2 — Admin Essentials
@@ -18,6 +19,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | 5 | **#21** Invite revocation | Now that invites are the only entry point (#36), admins need to cancel mistaken ones. |
 | 6 | **#24** Confirmation dialogs | Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value. |
 | 7 | **#32** Audit logging | With ban/revoke/role-change all live, an audit trail becomes important for accountability. |
+| 7a | **#45** Email change requires re-verification | Users who change their email must re-verify via the existing 8-digit code flow. Depends on #44. |
 
 ## Tier 3 — Scalability & Data Management
 
@@ -46,8 +48,9 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 
 ## Dependency Chains
 
-- **#36 → #21 → #28**: invite-only registration makes revocation and resend meaningful
+- ~~**#36**~~ → **#21 → #28**: invite-only registration (done) makes revocation and resend meaningful
 - **#22 + #21 → #24**: confirmation dialogs protect the destructive actions they gate
 - **#22 + #21 → #32**: audit logging should capture the admin actions it tracks
 - **#23 → #26**: search/filtering builds on paginated lists
+- ~~**#44**~~ → **#45**: email change re-verification reuses the 8-digit code flow
 - **#41 before #19** is nice-to-have (so the reset password email is a React Email component from the start) but not a hard blocker

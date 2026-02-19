@@ -58,6 +58,27 @@ export async function sendVerificationCodeEmail({
   });
 }
 
+export async function sendResetPasswordEmail({
+  email,
+  url,
+}: {
+  email: string;
+  url: string;
+}) {
+  await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: "Reset your password — Berlin Reunion",
+    html: `
+      <h2>Reset your password</h2>
+      <p>Click the link below to reset your password:</p>
+      <p><a href="${url}">Reset Password</a></p>
+      <p>This link expires in 1 hour.</p>
+      <p>If you didn't request a password reset, you can ignore this email.</p>
+    `,
+  });
+}
+
 export async function sendInviteEmail({
   to,
   inviterName,
