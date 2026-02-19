@@ -72,6 +72,15 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+// ─── Rate Limit ────────────────────────────────────────────────────────────
+// better-auth database-backed rate limiting storage
+export const rateLimit = sqliteTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key"),
+  count: integer("count"),
+  lastRequest: integer("last_request"),
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {
