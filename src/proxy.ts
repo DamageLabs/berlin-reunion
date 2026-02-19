@@ -8,6 +8,7 @@ function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   if (pathname.startsWith("/api/auth")) return true;
   if (pathname.startsWith("/api/invites/")) return true;
+  if (pathname.startsWith("/api/verify-code")) return true;
   return false;
 }
 

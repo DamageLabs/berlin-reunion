@@ -4,6 +4,11 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 
+function isUnverifiedError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return lower.includes("email") && lower.includes("verified");
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -13,10 +18,13 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showVerifyPrompt, setShowVerifyPrompt] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setShowVerifyPrompt(false);
     setLoading(true);
 
     await signIn.username(
@@ -26,7 +34,11 @@ function LoginForm() {
           router.push(callbackUrl);
         },
         onError: (ctx) => {
-          setError(ctx.error.message ?? "Sign in failed");
+          const msg = ctx.error.message ?? "Sign in failed";
+          setError(msg);
+          if (isUnverifiedError(msg)) {
+            setShowVerifyPrompt(true);
+          }
         },
       },
     );
@@ -47,6 +59,36 @@ function LoginForm() {
         {error && (
           <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
             {error}
+          </div>
+        )}
+
+        {showVerifyPrompt && (
+          <div className="rounded-md border border-silver/30 p-3 space-y-2">
+            <p className="text-sm text-silver">
+              Enter your email to verify your account:
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={verifyEmail}
+                onChange={(e) => setVerifyEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 rounded-md border border-silver px-3 py-1.5 text-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (verifyEmail) {
+                    router.push(
+                      `/verify-email?email=${encodeURIComponent(verifyEmail)}`,
+                    );
+                  }
+                }}
+                className="rounded-md bg-navy px-3 py-1.5 text-sm font-medium text-gold hover:bg-navy-dark dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+              >
+                Verify
+              </button>
+            </div>
           </div>
         )}
 

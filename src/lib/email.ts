@@ -36,6 +36,28 @@ export async function sendVerificationEmail({
   });
 }
 
+export async function sendVerificationCodeEmail({
+  email,
+  code,
+}: {
+  email: string;
+  code: string;
+}) {
+  const formatted = `${code.slice(0, 4)} ${code.slice(4)}`;
+  await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: "Your verification code — Berlin Reunion",
+    html: `
+      <h2>Your verification code</h2>
+      <p>Enter this code to verify your email address:</p>
+      <p style="font-family:monospace;font-size:32px;letter-spacing:4px;font-weight:bold;text-align:center;padding:16px 0">${formatted}</p>
+      <p>This code expires in 15 minutes.</p>
+      <p>If you didn't create an account, you can ignore this email.</p>
+    `,
+  });
+}
+
 export async function sendInviteEmail({
   to,
   inviterName,

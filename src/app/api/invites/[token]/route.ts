@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { inviteToken, user } from "@/db/schema";
+import { inviteToken, user, emailVerificationCode } from "@/db/schema";
+import { generateVerificationCode, hashCode, EXPIRY_MS } from "@/lib/verification-code";
+import { sendVerificationCodeEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -116,14 +118,26 @@ export async function POST(request: NextRequest, { params }: Params) {
     );
   }
 
-  // Auto-verify and set invited role via Drizzle
+  // Set invited role (do NOT auto-verify email)
   await db
     .update(user)
-    .set({
-      emailVerified: true,
-      role: invite.role,
-    })
+    .set({ role: invite.role })
     .where(eq(user.id, signUpResult.user.id));
+
+  // Generate and store verification code
+  const code = generateVerificationCode();
+  const now = new Date();
+  await db.insert(emailVerificationCode).values({
+    id: crypto.randomUUID(),
+    email: invite.email,
+    codeHash: hashCode(code),
+    attempts: 0,
+    createdAt: now,
+    expiresAt: new Date(now.getTime() + EXPIRY_MS),
+  });
+
+  // Send verification code email
+  await sendVerificationCodeEmail({ email: invite.email, code });
 
   // Mark invite as used
   await db
@@ -138,7 +152,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         email: signUpResult.user.email,
         name: signUpResult.user.name,
         role: invite.role,
-        emailVerified: true,
+        emailVerified: false,
       },
     },
     { status: 201 },
