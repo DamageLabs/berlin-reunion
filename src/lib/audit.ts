@@ -6,7 +6,8 @@ export type AuditAction =
   | "user.ban"
   | "user.unban"
   | "invite.create"
-  | "invite.revoke";
+  | "invite.revoke"
+  | "email.change";
 
 export async function logAuditEvent(params: {
   action: AuditAction;

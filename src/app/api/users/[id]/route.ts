@@ -28,7 +28,11 @@ export async function GET(_request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  return NextResponse.json({
+  const isOwner = session.user.id === found.id;
+  const isAdmin =
+    ((session.user as { role?: string }).role ?? "user") === "admin";
+
+  const response: Record<string, unknown> = {
     id: found.id,
     name: found.name,
     username: found.username,
@@ -38,5 +42,12 @@ export async function GET(_request: NextRequest, { params }: Params) {
     yearsServed: found.yearsServed,
     role: found.role,
     createdAt: found.createdAt,
-  });
+  };
+
+  if (isOwner || isAdmin) {
+    response.email = found.email;
+    response.pendingEmail = found.pendingEmail ?? null;
+  }
+
+  return NextResponse.json(response);
 }

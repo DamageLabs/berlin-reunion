@@ -53,6 +53,7 @@ const sampleUser = {
   emailVerified: true,
   banned: false,
   banReason: null,
+  pendingEmail: null,
 };
 
 // --- Tests ---
@@ -75,7 +76,7 @@ describe("GET /api/users/[id]", () => {
     expect(res.status).toBe(404);
   });
 
-  it("returns public fields only on success", async () => {
+  it("returns public fields only for non-owner", async () => {
     mockGetSession.mockResolvedValue(userSession());
     mockFindFirst.mockResolvedValue(sampleUser);
 
@@ -97,8 +98,38 @@ describe("GET /api/users/[id]", () => {
 
     // Sensitive fields must not be present
     expect(body.email).toBeUndefined();
+    expect(body.pendingEmail).toBeUndefined();
     expect(body.emailVerified).toBeUndefined();
     expect(body.banned).toBeUndefined();
     expect(body.banReason).toBeUndefined();
+  });
+
+  it("includes email and pendingEmail for owner", async () => {
+    mockGetSession.mockResolvedValue(userSession("user-2"));
+    mockFindFirst.mockResolvedValue({
+      ...sampleUser,
+      pendingEmail: "newalice@example.com",
+    });
+
+    const res = await GET(makeRequest("user-2"), makeParams("user-2"));
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.email).toBe("alice@example.com");
+    expect(body.pendingEmail).toBe("newalice@example.com");
+  });
+
+  it("includes email and pendingEmail for admin", async () => {
+    mockGetSession.mockResolvedValue({
+      user: { id: "admin-1", name: "Admin", role: "admin" },
+    });
+    mockFindFirst.mockResolvedValue(sampleUser);
+
+    const res = await GET(makeRequest("user-2"), makeParams("user-2"));
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.email).toBe("alice@example.com");
+    expect(body.pendingEmail).toBeNull();
   });
 });

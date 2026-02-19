@@ -22,6 +22,8 @@ export const user = sqliteTable("user", {
   location: text("location"),
   platoon: text("platoon"),
   yearsServed: text("years_served"),
+  // email change
+  pendingEmail: text("pending_email"),
 });
 
 // ─── Session ────────────────────────────────────────────────────────────────
