@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -51,7 +50,7 @@ export default function Header() {
                 className="hidden items-center gap-2 sm:flex"
               >
                 {(session.user as { image?: string }).image ? (
-                  <Image
+                  <img
                     src={(session.user as { image?: string }).image!}
                     alt=""
                     width={24}

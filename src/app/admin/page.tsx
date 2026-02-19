@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useSession, authClient } from "@/lib/auth-client";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -349,7 +348,7 @@ export default function AdminPage() {
                 >
                   <td className="py-2 pr-4">
                     {u.image ? (
-                      <Image
+                      <img
                         src={u.image}
                         alt=""
                         width={28}

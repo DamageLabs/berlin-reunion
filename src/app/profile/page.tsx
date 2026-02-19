@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 
@@ -270,11 +269,10 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-silver/20">
               {displayPhoto ? (
-                <Image
+                <img
                   src={displayPhoto}
                   alt="Profile photo"
-                  fill
-                  className="object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
                 <span className="flex h-full items-center justify-center text-2xl text-silver">
