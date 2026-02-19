@@ -45,6 +45,12 @@ export default function HelloPage() {
               <dd>{(user as { username?: string }).username ?? "—"}</dd>
             </div>
             <div className="flex justify-between">
+              <dt className="text-silver">Location</dt>
+              <dd>
+                {(user as { location?: string }).location ?? "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between">
               <dt className="text-silver">Role</dt>
               <dd className="capitalize">{role}</dd>
             </div>
@@ -52,6 +58,12 @@ export default function HelloPage() {
         </div>
 
         <nav className="flex flex-col gap-2">
+          <Link
+            href="/profile"
+            className="rounded-md border border-silver px-4 py-2 text-center text-sm font-medium hover:bg-navy/5 dark:border-silver/30 dark:hover:bg-navy-light"
+          >
+            Edit Profile
+          </Link>
           <Link
             href="/change-password"
             className="rounded-md border border-silver px-4 py-2 text-center text-sm font-medium hover:bg-navy/5 dark:border-silver/30 dark:hover:bg-navy-light"

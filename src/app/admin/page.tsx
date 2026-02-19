@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { useSession, authClient } from "@/lib/auth-client";
 
 interface UserRecord {
@@ -12,6 +14,8 @@ interface UserRecord {
   role?: string;
   emailVerified: boolean;
   createdAt: string;
+  image?: string;
+  location?: string;
 }
 
 interface Invite {
@@ -193,9 +197,11 @@ export default function AdminPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-silver/30 dark:border-silver/20">
+                <th className="pb-2 pr-4 font-medium"></th>
                 <th className="pb-2 pr-4 font-medium">Name</th>
                 <th className="pb-2 pr-4 font-medium">Email</th>
                 <th className="pb-2 pr-4 font-medium">Username</th>
+                <th className="pb-2 pr-4 font-medium">Location</th>
                 <th className="pb-2 pr-4 font-medium">Role</th>
                 <th className="pb-2 font-medium">Verified</th>
               </tr>
@@ -206,9 +212,29 @@ export default function AdminPage() {
                   key={u.id}
                   className="border-b border-silver/20 dark:border-silver/10"
                 >
-                  <td className="py-2 pr-4">{u.name}</td>
+                  <td className="py-2 pr-4">
+                    {u.image ? (
+                      <Image
+                        src={u.image}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-silver/20 text-xs text-silver">
+                        {u.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <Link href={`/users/${u.id}`} className="underline hover:text-gold">
+                      {u.name}
+                    </Link>
+                  </td>
                   <td className="py-2 pr-4 text-silver">{u.email}</td>
                   <td className="py-2 pr-4">{u.username ?? "—"}</td>
+                  <td className="py-2 pr-4 text-silver">{u.location ?? "—"}</td>
                   <td className="py-2 pr-4">
                     {role === "admin" ? (
                       <select

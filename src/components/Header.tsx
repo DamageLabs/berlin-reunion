@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -45,9 +46,23 @@ export default function Header() {
               <span className="mx-2 hidden text-sm text-silver/40 sm:inline">
                 |
               </span>
-              <span className="hidden text-sm text-silver sm:inline">
-                {session.user.name}
-              </span>
+              <Link
+                href="/profile"
+                className="hidden items-center gap-2 sm:flex"
+              >
+                {(session.user as { image?: string }).image ? (
+                  <Image
+                    src={(session.user as { image?: string }).image!}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="rounded-full object-cover"
+                  />
+                ) : null}
+                <span className="text-sm text-silver">
+                  {session.user.name}
+                </span>
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="ml-2 rounded-md bg-navy px-3 py-1.5 text-sm font-medium text-gold hover:bg-navy-light"
