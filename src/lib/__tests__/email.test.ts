@@ -40,6 +40,25 @@ describe("email", () => {
     });
   });
 
+  describe("sendResetPasswordEmail", () => {
+    it("sends with correct from, to, subject, and reset URL", async () => {
+      const { sendResetPasswordEmail } = await loadModule();
+      await sendResetPasswordEmail({
+        email: "user@example.com",
+        url: "http://localhost:3000/api/auth/reset-password/abc123?callbackURL=/reset-password",
+      });
+
+      expect(mockSend).toHaveBeenCalledOnce();
+      const call = mockSend.mock.calls[0][0];
+      expect(call.from).toBe("test@example.com");
+      expect(call.to).toBe("user@example.com");
+      expect(call.subject).toContain("Reset your password");
+      expect(call.html).toContain(
+        "http://localhost:3000/api/auth/reset-password/abc123?callbackURL=/reset-password",
+      );
+    });
+  });
+
   describe("sendInviteEmail", () => {
     it("sends with correct from, to, subject, and body content", async () => {
       const { sendInviteEmail } = await loadModule();
