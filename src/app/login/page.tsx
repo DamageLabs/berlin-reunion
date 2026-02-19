@@ -10,7 +10,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/hello";
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,8 +20,8 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
-    await signIn.email(
-      { email, password },
+    await signIn.username(
+      { username, password },
       {
         onSuccess: () => {
           router.push(callbackUrl);
@@ -52,15 +52,15 @@ function LoginForm() {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
+          <label htmlFor="username" className="block text-sm font-medium">
+            Username
           </label>
           <input
-            id="email"
-            type="email"
+            id="username"
+            type="text"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
           />
         </div>
