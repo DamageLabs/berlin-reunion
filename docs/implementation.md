@@ -43,7 +43,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | Order | Issue | Rationale |
 |-------|-------|-----------|
 | 15 | **#40** Encrypt sensitive fields | Important but complex (blind indexes, data migration). Better tackled once the schema is stable and all features are in. |
-| 16 | **#31** Deployment configuration | Needed before go-live but not before feature work. Depends on knowing the final data persistence strategy. |
+| 16 | ~~**#31** Deployment configuration~~ | ~~Needed before go-live but not before feature work. Depends on knowing the final data persistence strategy.~~ |
 | 17 | **#33** E2E tests with Playwright | Best saved for last — features need to stabilize first or tests will churn constantly. Covers all the flows built above. |
 
 ## Dependency Chains
