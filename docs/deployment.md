@@ -129,7 +129,7 @@ Verify the app starts:
 
 ```bash
 npm start
-# Should listen on port 3000 — Ctrl+C to stop
+# Should listen on port 3050 — Ctrl+C to stop
 ```
 
 Exit back to your sudo user:
@@ -155,7 +155,7 @@ ExecStart=/usr/bin/npm start
 Restart=on-failure
 RestartSec=5
 Environment=NODE_ENV=production
-Environment=PORT=3000
+Environment=PORT=3050
 
 [Install]
 WantedBy=multi-user.target
@@ -186,7 +186,7 @@ server {
     server_name berlin-reunion.com www.berlin-reunion.com;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3050;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
