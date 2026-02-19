@@ -20,6 +20,8 @@ const mockQueryFindFirst = vi.fn();
 const mockUpdateWhere = vi.fn().mockResolvedValue(undefined);
 const mockUpdateSet = vi.fn().mockReturnValue({ where: mockUpdateWhere });
 const mockUpdate = vi.fn().mockReturnValue({ set: mockUpdateSet });
+const mockInsertValues = vi.fn().mockResolvedValue(undefined);
+const mockInsert = vi.fn().mockReturnValue({ values: mockInsertValues });
 
 vi.mock("@/db", () => ({
   db: {
@@ -29,12 +31,26 @@ vi.mock("@/db", () => ({
       },
     },
     update: (...args: unknown[]) => mockUpdate(...args),
+    insert: (...args: unknown[]) => mockInsert(...args),
   },
 }));
 
 vi.mock("@/db/schema", () => ({
   inviteToken: { token: "token", id: "id" },
   user: { id: "id" },
+  emailVerificationCode: {},
+}));
+
+vi.mock("@/lib/verification-code", () => ({
+  generateVerificationCode: () => "ABCD1234",
+  hashCode: (code: string) => `hash_${code}`,
+  EXPIRY_MS: 15 * 60 * 1000,
+}));
+
+const mockSendVerificationCodeEmail = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/email", () => ({
+  sendVerificationCodeEmail: (...args: unknown[]) =>
+    mockSendVerificationCodeEmail(...args),
 }));
 
 // Import from the [token] route, not the parent
@@ -129,6 +145,8 @@ describe("POST /api/invites/[token] (accept)", () => {
     mockUpdateWhere.mockResolvedValue(undefined);
     mockUpdateSet.mockReturnValue({ where: mockUpdateWhere });
     mockUpdate.mockReturnValue({ set: mockUpdateSet });
+    mockInsertValues.mockResolvedValue(undefined);
+    mockInsert.mockReturnValue({ values: mockInsertValues });
   });
 
   it("returns 404 when invite not found", async () => {
@@ -183,7 +201,7 @@ describe("POST /api/invites/[token] (accept)", () => {
     expect(body.error).toContain("required");
   });
 
-  it("returns 201 on successful acceptance", async () => {
+  it("returns 201 on successful acceptance with emailVerified false", async () => {
     mockQueryFindFirst.mockResolvedValue(validInvite());
     mockSignUpEmail.mockResolvedValue({
       user: { id: "new-user-1", email: "invitee@example.com", name: "Bob" },
@@ -202,7 +220,7 @@ describe("POST /api/invites/[token] (accept)", () => {
     const body = await res.json();
     expect(body.user.email).toBe("invitee@example.com");
     expect(body.user.role).toBe("user");
-    expect(body.user.emailVerified).toBe(true);
+    expect(body.user.emailVerified).toBe(false);
 
     // Should have called signUpEmail
     expect(mockSignUpEmail).toHaveBeenCalledWith(
@@ -215,7 +233,16 @@ describe("POST /api/invites/[token] (accept)", () => {
       }),
     );
 
-    // Should have updated user (verify + role) and marked invite used
+    // Should have inserted a verification code
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+
+    // Should have sent verification code email
+    expect(mockSendVerificationCodeEmail).toHaveBeenCalledWith({
+      email: "invitee@example.com",
+      code: "ABCD1234",
+    });
+
+    // Should have updated user (role) and marked invite used
     expect(mockUpdate).toHaveBeenCalledTimes(2);
   });
 

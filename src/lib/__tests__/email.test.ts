@@ -61,6 +61,23 @@ describe("email", () => {
     });
   });
 
+  describe("sendVerificationCodeEmail", () => {
+    it("sends with correct from, to, subject, and formatted code", async () => {
+      const { sendVerificationCodeEmail } = await loadModule();
+      await sendVerificationCodeEmail({
+        email: "user@example.com",
+        code: "ABCD1234",
+      });
+
+      expect(mockSend).toHaveBeenCalledOnce();
+      const call = mockSend.mock.calls[0][0];
+      expect(call.from).toBe("test@example.com");
+      expect(call.to).toBe("user@example.com");
+      expect(call.subject).toContain("verification code");
+      expect(call.html).toContain("ABCD 1234");
+    });
+  });
+
   describe("missing API key", () => {
     it("throws when RESEND_API_KEY is not set", async () => {
       delete process.env.RESEND_API_KEY;
