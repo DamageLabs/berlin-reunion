@@ -11,104 +11,213 @@
 
 The SQLite database stores sensitive data in plaintext: user emails, session tokens, OAuth tokens, invite tokens, and verification values. If the `.db` file is exfiltrated (server compromise, backup leak, or improper access controls), all PII and auth credentials are immediately readable.
 
-The core challenge is that some encrypted fields (notably `user.email`, `inviteToken.token`, `emailVerificationCode.email`) are **queried with equality checks** (`eq(field, value)`), so they need a lookup strategy — you can't do `WHERE email = 'foo@bar.com'` on a ciphertext column. Additionally, **better-auth reads/writes many of these fields directly** through its Drizzle adapter, so the encryption layer must be transparent to both application code and better-auth internals.
+Two challenges make this non-trivial:
+
+1. **Queryable fields need blind indexes.** Fields like `user.email` and `inviteToken.token` are looked up with equality checks (`WHERE email = ?`). You can't query a ciphertext column with a plaintext value. Each queryable encrypted field needs a deterministic HMAC hash column for lookups.
+
+2. **better-auth manages several sensitive fields internally.** It queries `user.email` during sign-in and `session.token` during session validation via its Drizzle adapter. The encryption layer must be transparent to better-auth — it cannot be bolted on with route-level code alone.
 
 ## Technical Approach
 
+### Why Not "Drizzle Middleware" or "databaseHooks Alone"
+
+The original spec proposed a Drizzle middleware or `databaseHooks`. Investigation of better-auth internals revealed these don't work:
+
+- **Drizzle has no middleware/interceptor pattern.** There is no hook between a `.select()` call and the database.
+- **`databaseHooks` only cover writes** (`create.before`, `update.before`, `delete.before`). There are no read hooks, so better-auth's internal `findUserByEmail()` and `findSession()` still see ciphertext.
+- **Field transforms** (`transform.input`/`transform.output`) only apply during input parsing, not during where-clause construction. A `findOne({ where: [{ field: "email", value: "foo@bar.com" }] })` passes the plaintext value straight to the query.
+
+### Chosen Approach: Adapter Wrapper + Explicit Application Code
+
+better-auth's `drizzleAdapter()` returns a higher-order function `(options) => DBAdapter`. The `DBAdapter` interface exposes model-based CRUD methods (`findOne`, `findMany`, `create`, `update`, `delete`, etc.) where queries use `{ field, value, operator }` objects — not raw Drizzle column references. This abstraction layer is the right place to intercept.
+
+**Two layers handle all encryption:**
+
+| Layer | Scope | Handles |
+|-------|-------|---------|
+| **Adapter wrapper** (`src/lib/encrypted-adapter.ts`) | Tables managed by better-auth | `user.email`, `user.pendingEmail`, `session.token`, `session.ipAddress`, `verification.value` |
+| **Explicit application code** | Tables managed by app code only | `inviteToken.token`, `inviteToken.email`, `emailVerificationCode.email`, `auditLog.targetEmail` |
+
+**Additionally:** `account.accessToken` and `account.refreshToken` use better-auth's **built-in** `encryptOAuthTokens: true` option — zero custom code needed.
+
 ### Encryption Primitive
+
 - **AES-256-GCM** via Node.js `crypto` module — authenticated encryption with unique IV per value
 - Store as `iv:ciphertext:authTag` base64-encoded string in TEXT columns
 - Key from `ENCRYPTION_KEY` env var (32-byte base64 string)
 
-### Blind Indexes for Queryable Fields
-Fields queried with `eq()` need a deterministic, non-reversible lookup column:
-- Add `emailHash` column to `user` table (SHA-256 HMAC of normalized email using a separate `BLIND_INDEX_KEY`)
-- Add `pendingEmailHash` column to `user` table
-- Add `tokenHash` column to `inviteToken` table
-- Add `emailHash` column to `emailVerificationCode` table
-- All `eq(field, value)` queries switch to `eq(fieldHash, hmac(value))`
+### Blind Indexes
+
+- **HMAC-SHA256** using a separate `BLIND_INDEX_KEY` env var
+- Normalized input (lowercase + trim for emails) before hashing
+- Stored in dedicated `*Hash` columns with unique constraints replacing the original unique constraints on encrypted columns
 
 ### Fields by Strategy
 
-| Field | Table | Strategy | Needs Blind Index |
-|-------|-------|----------|-------------------|
-| `email` | user | Encrypt + blind index | **Yes** (5 query sites) |
-| `pendingEmail` | user | Encrypt + blind index | **Yes** (2 query sites) |
-| `token` | session | Encrypt only | No (better-auth manages via adapter) |
-| `ipAddress` | session | Encrypt only | No (never queried) |
-| `accessToken` | account | Encrypt only | No (no OAuth configured, no queries) |
-| `refreshToken` | account | Encrypt only | No |
-| `token` | inviteToken | Encrypt + blind index | **Yes** (2 query sites) |
-| `email` | inviteToken | Encrypt + blind index | **Yes** (2 query sites) |
-| `value` | verification | Encrypt only | No (unused by app, better-auth internal) |
-| `email` | emailVerificationCode | Encrypt + blind index | **Yes** (5 query sites) |
-| `targetEmail` | auditLog | Encrypt only | No (display only, not queried by value) |
+| Field | Table | Managed By | Strategy | Blind Index Column |
+|-------|-------|------------|----------|-------------------|
+| `email` | user | better-auth + app | Adapter wrapper: encrypt + blind index | `emailHash` |
+| `pendingEmail` | user | app | Adapter wrapper: encrypt + blind index | `pendingEmailHash` |
+| `token` | session | better-auth | Adapter wrapper: encrypt + blind index | `tokenHash` |
+| `ipAddress` | session | better-auth | Adapter wrapper: encrypt only | — |
+| `accessToken` | account | better-auth | **Built-in** `encryptOAuthTokens: true` | — |
+| `refreshToken` | account | better-auth | **Built-in** `encryptOAuthTokens: true` | — |
+| `value` | verification | better-auth | Adapter wrapper: encrypt only | — |
+| `token` | inviteToken | app | Explicit: encrypt + blind index | `tokenHash` |
+| `email` | inviteToken | app | Explicit: encrypt + blind index | `emailHash` |
+| `email` | emailVerificationCode | app | Explicit: encrypt + blind index | `emailHash` |
+| `targetEmail` | auditLog | app | Explicit: encrypt only | — |
 
-### better-auth Integration
-better-auth uses the Drizzle adapter directly, so encryption must happen at the adapter/utility layer — not in individual route handlers. Two options:
+### Adapter Wrapper Design
 
-**Option A (Recommended): Encryption utility functions + wrapped adapter**
-- Create `src/lib/crypto.ts` with `encrypt()`, `decrypt()`, `hmac()` functions
-- Create a Drizzle middleware/wrapper that intercepts reads/writes for sensitive columns
-- better-auth calls pass through the same Drizzle instance, getting transparent encryption
+The wrapper intercepts the `DBAdapter` methods returned by `drizzleAdapter()`:
 
-**Option B: Custom better-auth adapter hooks**
-- better-auth supports `databaseHooks` in config for `user.create`, `user.update`, `session.create` etc.
-- Encrypt in `create`/`update` hooks, but reads still return ciphertext — need a post-read layer
+```
+drizzleAdapter(db, config) → (options) → DBAdapter
+                                            ↓
+                              encryptedAdapter wraps this
+                                            ↓
+                              create:    encrypt fields + add blind indexes → delegate
+                              update:    encrypt fields + add blind indexes → delegate
+                              findOne:   rewrite where (field→hash) → delegate → decrypt result
+                              findMany:  rewrite where (field→hash) → delegate → decrypt results
+                              delete:    rewrite where (field→hash) → delegate
+                              updateMany: encrypt + rewrite where → delegate
+```
 
-**Option A is cleaner** because it handles both application queries and better-auth queries uniformly.
+**Where clause rewriting example:**
+```
+Input:  { field: "email", value: "foo@bar.com" }
+Output: { field: "emailHash", value: hmacHash("foo@bar.com") }
+```
+
+**Configuration map** drives the wrapper (no hardcoded logic per model):
+```typescript
+const ENCRYPTED_FIELDS = {
+  user: {
+    email:        { blindIndex: "emailHash" },
+    pendingEmail: { blindIndex: "pendingEmailHash" },
+  },
+  session: {
+    token:     { blindIndex: "tokenHash" },
+    ipAddress: { blindIndex: null },
+  },
+  verification: {
+    value: { blindIndex: null },
+  },
+};
+```
 
 ## Implementation Plan
 
 ### Step 1: Create encryption utility (`src/lib/crypto.ts`)
+
 - `encrypt(plaintext: string): string` — AES-256-GCM, returns `iv:ciphertext:tag` base64
 - `decrypt(encrypted: string): string` — reverse
 - `hmacHash(value: string): string` — HMAC-SHA256 for blind indexes
-- `isEncrypted(value: string): boolean` — detect if a value is already encrypted (for migration)
-- Export constants for env var names
+- `isEncrypted(value: string): boolean` — detect `iv:ciphertext:tag` format (for migration idempotency and graceful handling of pre-migration data)
+- `safeDecrypt(value: string): string` — returns plaintext if not encrypted (migration transition)
+- Throws descriptive error if `ENCRYPTION_KEY` or `BLIND_INDEX_KEY` env vars are missing
 
 ### Step 2: Schema changes + migration
-Add blind index columns:
-- `user`: `emailHash`, `pendingEmailHash`
-- `inviteToken`: `tokenHash`, `emailHash`
+
+Add blind index columns (TEXT, unique where applicable):
+- `user`: `emailHash` (unique), `pendingEmailHash`
+- `session`: `tokenHash` (unique)
+- `inviteToken`: `tokenHash` (unique), `emailHash`
 - `emailVerificationCode`: `emailHash`
+
+Move unique constraints: `user.email` unique → `user.emailHash` unique. Same for `session.token` → `session.tokenHash`, `inviteToken.token` → `inviteToken.tokenHash`.
 
 Run `drizzle-kit generate` + `drizzle-kit push`.
 
-### Step 3: Create encrypted field helpers (`src/lib/encrypted-fields.ts`)
-- Define a map of `table.column` → `{ encrypt: true, blindIndex: 'hashColumnName' | null }`
-- Helper functions: `encryptRow(table, data)`, `decryptRow(table, data)`, `addBlindIndexes(table, data)`
+### Step 3: Create adapter wrapper (`src/lib/encrypted-adapter.ts`)
 
-### Step 4: Update application queries
-Replace all `eq(user.email, value)` with `eq(user.emailHash, hmacHash(value))` across:
-- `src/app/api/invites/route.ts`
-- `src/app/api/verify-code/route.ts`
-- `src/app/api/verify-code/resend/route.ts`
-- `src/app/api/users/[id]/email/route.ts`
-- `src/app/api/users/[id]/email/confirm/route.ts`
-- `src/lib/auth.ts` (signup guard invite check, email verification hook)
+- Export `createEncryptedAdapter(baseAdapterFactory)` that returns a new adapter factory with the same signature
+- Wraps all CRUD methods using the `ENCRYPTED_FIELDS` config map
+- **create**: encrypt mapped fields, compute blind indexes, delegate to base adapter, decrypt return value
+- **update / updateMany**: encrypt mapped fields in update payload, rewrite where clauses, delegate
+- **findOne / findMany**: rewrite where clauses for blind-indexed fields, delegate, decrypt mapped fields in results
+- **delete / deleteMany**: rewrite where clauses, delegate
+- **count / transaction**: delegate directly (no sensitive data in count; transaction wraps the already-wrapped adapter)
 
-Add decrypt calls when reading sensitive fields for API responses or email sending.
+### Step 4: Wire adapter into better-auth config (`src/lib/auth.ts`)
 
-### Step 5: Integrate with better-auth via `databaseHooks`
-Use better-auth's `databaseHooks` config to encrypt on create/update for `user`, `session`, `account` tables. Add a post-query decryption layer by wrapping the db instance or using Drizzle's `$onSelect` pattern.
+```typescript
+import { createEncryptedAdapter } from "@/lib/encrypted-adapter";
+
+database: createEncryptedAdapter(drizzleAdapter)(db, {
+  provider: "sqlite",
+  schema,
+}),
+
+account: {
+  encryptOAuthTokens: true,
+},
+```
+
+Update hooks in `auth.ts` that do direct Drizzle queries on better-auth-managed fields:
+- `signupGuard`: `eq(schema.inviteToken.email, email)` → `eq(schema.inviteToken.emailHash, hmacHash(email))`
+- `sendVerificationEmail` hook: `eq(schema.inviteToken.email, user.email)` → `eq(schema.inviteToken.emailHash, hmacHash(user.email))`
+
+Note: `user.email` inside better-auth hooks is already decrypted by the adapter wrapper before reaching hook code.
+
+### Step 5: Update application queries (app-managed tables)
+
+For tables NOT managed by better-auth (inviteToken, emailVerificationCode, auditLog), add explicit encrypt/decrypt in route handlers:
+
+**inviteToken** — 4 files:
+- `src/app/api/invites/route.ts` — encrypt email on create; use `emailHash` for lookups; decrypt on list response
+- `src/app/api/invites/[token]/route.ts` — use `tokenHash` for lookup; decrypt fields on response
+- `src/app/api/invites/[token]/accept/route.ts` — use `tokenHash` for lookup; encrypt email when inserting verification code
+- `src/lib/auth.ts` — signup guard and verification hook already updated in Step 4
+
+**emailVerificationCode** — 5 files:
+- `src/app/api/verify-code/route.ts` — use `emailHash` for lookup
+- `src/app/api/verify-code/resend/route.ts` — use `emailHash` for lookup + delete; encrypt email on insert
+- `src/app/api/users/[id]/email/route.ts` — use `emailHash` for uniqueness + delete; encrypt email on insert
+- `src/app/api/users/[id]/email/confirm/route.ts` — use `emailHash` for lookup + delete
+- `src/app/api/users/[id]/email/resend/route.ts` — use `emailHash` for delete; encrypt email on insert
+
+**auditLog** — 2 files:
+- `src/lib/audit.ts` — encrypt `targetEmail` on write
+- `src/app/api/audit-logs/route.ts` — decrypt `targetEmail` on read
+
+**user (app-level queries)** — these use direct Drizzle, NOT the adapter:
+- `src/app/api/invites/route.ts` — `eq(user.email, email)` → `eq(user.emailHash, hmacHash(email))`
+- `src/app/api/verify-code/route.ts` — same pattern
+- `src/app/api/verify-code/resend/route.ts` — same pattern
+- `src/app/api/users/[id]/email/route.ts` — switch `or(eq(user.email, ...), eq(user.pendingEmail, ...))` to use hash columns; encrypt `pendingEmail` on write; decrypt on read
+- `src/app/api/users/[id]/email/confirm/route.ts` — switch to hash columns; encrypt `email` on commit; decrypt on read
+- `src/app/api/users/[id]/email/resend/route.ts` — decrypt `pendingEmail` on read
+- `src/app/api/users/[id]/route.ts` — decrypt `email`/`pendingEmail` on read (already exposed only to owner/admin)
 
 ### Step 6: Data migration script (`scripts/migrate-encryption.ts`)
-- Read all existing rows from affected tables
+
+- Read all rows from each affected table
+- For each row: skip if `isEncrypted(value)` is true (idempotent)
 - Encrypt plaintext values, compute blind indexes
-- Write back encrypted values + hashes
-- Idempotent: skip already-encrypted values via `isEncrypted()` check
+- Write back in batches (100 rows per transaction)
+- Print progress: `Migrated X/Y rows in table Z`
+- Runnable via `npx tsx scripts/migrate-encryption.ts`
 
 ### Step 7: Update `.env.example` and docs
-- Add `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` to `.env.example`
-- Add key generation instructions to deployment docs
-- Document rotation strategy
+
+- Add `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` to `.env.example` with generation instructions
+- Add key generation commands to `docs/deployment.md`:
+  ```bash
+  openssl rand -base64 32  # ENCRYPTION_KEY
+  openssl rand -base64 32  # BLIND_INDEX_KEY
+  ```
+- Document that keys must be set BEFORE running the migration script
+- Document rotation strategy (re-encrypt all rows with new key, update blind indexes if BLIND_INDEX_KEY changes)
 
 ### Step 8: Tests
-- Unit tests for `crypto.ts` (encrypt/decrypt roundtrip, hmac determinism, IV uniqueness)
-- Unit tests for `encrypted-fields.ts` (row encryption/decryption, blind index generation)
-- Integration tests verifying queries still work with blind indexes
-- Test migration script idempotency
+
+- Unit tests for `crypto.ts`
+- Unit tests for `encrypted-adapter.ts` (mock base adapter, verify interception)
+- Updated route tests with encryption env vars set
+- Migration script idempotency tests
 
 ## Test Plan
 
@@ -118,34 +227,42 @@ Use better-auth's `databaseHooks` config to encrypt on create/update for `user`,
    - Same plaintext produces different ciphertexts (unique IV)
    - hmacHash is deterministic (same input = same output)
    - hmacHash produces different output for different inputs
-   - decrypt throws on tampered ciphertext (GCM auth)
+   - decrypt throws on tampered ciphertext (GCM auth tag failure)
+   - isEncrypted correctly identifies encrypted vs plaintext values
+   - safeDecrypt returns plaintext strings unchanged
    - Missing ENCRYPTION_KEY throws descriptive error
 
-2. **Unit Tests** (`src/lib/__tests__/encrypted-fields.test.ts`):
-   - encryptRow encrypts only mapped fields
-   - decryptRow decrypts only mapped fields
-   - addBlindIndexes computes correct hash columns
+2. **Unit Tests** (`src/lib/__tests__/encrypted-adapter.test.ts`):
+   - create: encrypts mapped fields, adds blind indexes, decrypts return value
+   - findOne: rewrites where clause for blind-indexed field, decrypts result
+   - findMany: rewrites where clauses, decrypts all results
+   - update: encrypts update payload, rewrites where clause
+   - delete: rewrites where clause for blind-indexed field
    - Non-sensitive fields pass through unchanged
+   - Non-mapped models pass through unchanged
 
 3. **Integration Tests** (updated route tests):
    - Email uniqueness checks work via blind index
    - Invite token lookups work via blind index
    - Verification code email lookups work via blind index
-   - API responses return decrypted values
+   - API responses return decrypted values (not ciphertext)
+   - better-auth sign-in works (email lookup via adapter wrapper)
+   - better-auth session validation works (token lookup via adapter wrapper)
 
 4. **Migration Tests** (`scripts/__tests__/migrate-encryption.test.ts`):
    - Plaintext rows are encrypted after migration
    - Already-encrypted rows are skipped (idempotent)
    - Blind indexes are populated correctly
+   - Unique constraints hold on hash columns
 
 ## Files to Create
 
 | File | Purpose |
 |------|---------|
 | `src/lib/crypto.ts` | AES-256-GCM encrypt/decrypt + HMAC blind index functions |
-| `src/lib/encrypted-fields.ts` | Table/column encryption mapping and row-level helpers |
+| `src/lib/encrypted-adapter.ts` | Adapter wrapper factory — intercepts better-auth's DB calls |
 | `src/lib/__tests__/crypto.test.ts` | Tests for encryption primitives |
-| `src/lib/__tests__/encrypted-fields.test.ts` | Tests for field-level encryption helpers |
+| `src/lib/__tests__/encrypted-adapter.test.ts` | Tests for adapter wrapper interception |
 | `scripts/migrate-encryption.ts` | One-time data migration script |
 | `scripts/__tests__/migrate-encryption.test.ts` | Migration idempotency tests |
 
@@ -153,85 +270,92 @@ Use better-auth's `databaseHooks` config to encrypt on create/update for `user`,
 
 | File | Changes |
 |------|---------|
-| `src/db/schema.ts` | Add `emailHash`, `pendingEmailHash` to user; `tokenHash`, `emailHash` to inviteToken; `emailHash` to emailVerificationCode |
-| `src/lib/auth.ts` | Add `databaseHooks` for encrypt-on-write; update signup guard and email verification hook to use blind indexes |
-| `src/app/api/invites/route.ts` | Switch `eq(inviteToken.email, ...)` to blind index; decrypt on read |
-| `src/app/api/invites/[token]/route.ts` | Switch `eq(inviteToken.token, ...)` to blind index; decrypt on read |
-| `src/app/api/invites/[token]/accept/route.ts` | Switch token lookup to blind index; encrypt email on code insert |
-| `src/app/api/verify-code/route.ts` | Switch `eq(user.email, ...)` to blind index |
-| `src/app/api/verify-code/resend/route.ts` | Switch email lookups to blind index |
+| `src/db/schema.ts` | Add `emailHash`, `pendingEmailHash` to user; `tokenHash` to session; `tokenHash`, `emailHash` to inviteToken; `emailHash` to emailVerificationCode. Move unique constraints from encrypted columns to hash columns. |
+| `src/lib/auth.ts` | Use `createEncryptedAdapter` wrapper; add `encryptOAuthTokens: true`; update signup guard and verification hook to use blind indexes on inviteToken |
+| `src/app/api/invites/route.ts` | Encrypt email/token on create; use blind indexes for lookups; decrypt on list response |
+| `src/app/api/invites/[token]/route.ts` | Use `tokenHash` for lookup; decrypt fields |
+| `src/app/api/invites/[token]/accept/route.ts` | Use `tokenHash` for lookup; encrypt email on verification code insert |
+| `src/app/api/verify-code/route.ts` | Use `emailHash` for user and code lookups |
+| `src/app/api/verify-code/resend/route.ts` | Use `emailHash` for lookups; encrypt email on insert |
 | `src/app/api/users/[id]/route.ts` | Decrypt email/pendingEmail before returning |
-| `src/app/api/users/[id]/email/route.ts` | Use blind indexes for uniqueness checks; encrypt pendingEmail on write |
-| `src/app/api/users/[id]/email/confirm/route.ts` | Use blind indexes; encrypt email on commit |
-| `src/app/api/users/[id]/email/resend/route.ts` | Use blind index for code lookup |
-| `src/app/api/audit-logs/route.ts` | Decrypt targetEmail on read |
-| `.env.example` | Add `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` |
-| `docs/deployment.md` | Add key generation + rotation instructions |
-
-## Existing Utilities to Leverage
-
-- `src/lib/verification-code.ts` — `hashCode()` uses SHA-256 already; similar pattern for HMAC
-- `src/db/index.ts` — single Drizzle instance; encryption wrapper goes here or in a middleware layer
-- `drizzle-kit` — for schema migrations
-- Node.js `crypto` — built-in, no new dependencies needed
+| `src/app/api/users/[id]/email/route.ts` | Use hash columns for uniqueness; encrypt pendingEmail/email on write; decrypt on read |
+| `src/app/api/users/[id]/email/confirm/route.ts` | Use hash columns; encrypt email on commit; decrypt on read |
+| `src/app/api/users/[id]/email/resend/route.ts` | Use `emailHash` for code lookup; decrypt pendingEmail |
+| `src/lib/audit.ts` | Encrypt `targetEmail` on write |
+| `src/app/api/audit-logs/route.ts` | Decrypt `targetEmail` on read |
+| `.env.example` | Add `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` with generation instructions |
+| `docs/deployment.md` | Add key generation + rotation documentation |
 
 ## Sensitive Field Usage Audit
 
-### user.email
+### user.email (adapter-wrapped)
 
-**Queries (5 sites):**
-- `src/app/api/invites/route.ts:62` — `eq(user.email, email)`
-- `src/app/api/verify-code/resend/route.ts:27` — `eq(user.email, email)`
-- `src/app/api/users/[id]/email/route.ts:70` — `or(eq(user.email, trimmedEmail), eq(user.pendingEmail, trimmedEmail))`
-- `src/app/api/users/[id]/email/confirm/route.ts:60` — `or(eq(user.email, pendingEmail), eq(user.pendingEmail, pendingEmail))`
-- `src/app/api/verify-code/route.ts:68` — `eq(user.email, email)`
+**better-auth internal queries (handled by adapter wrapper):**
+- Sign-in: `findOne({ model: "user", where: [{ field: "email", value }] })` → wrapper rewrites to emailHash
+- Sign-up: `create({ model: "user", data: { email, ... } })` → wrapper encrypts + adds emailHash
+- Password reset: `findOne` by email → wrapper rewrites
 
-**Selects:**
-- `src/app/api/users/[id]/email/route.ts:49-50` — `.select({ email: user.email, pendingEmail: user.pendingEmail })`
-- `src/app/api/users/[id]/email/confirm/route.ts:41-42` — same pattern
-- `src/app/api/users/[id]/email/resend/route.ts:36` — `.select({ pendingEmail: user.pendingEmail })`
+**Application direct Drizzle queries (explicit code changes):**
+- `src/app/api/invites/route.ts:62` — `eq(user.email, email)` → `eq(user.emailHash, hmacHash(email))`
+- `src/app/api/verify-code/resend/route.ts:27` — same pattern
+- `src/app/api/users/[id]/email/route.ts:70` — `or(eq(user.email, ...), eq(user.pendingEmail, ...))` → use hash columns
+- `src/app/api/users/[id]/email/confirm/route.ts:60` — same pattern
+- `src/app/api/verify-code/route.ts:68` — same pattern
 
-**Writes:**
-- `src/app/api/users/[id]/email/route.ts:100-103` — `.set({ pendingEmail: trimmedEmail })`
-- `src/app/api/users/[id]/email/confirm/route.ts:116-124` — `.set({ email: pendingEmail, pendingEmail: null })`
+**Reads requiring decryption:**
+- `src/app/api/users/[id]/email/route.ts:49-50` — select email/pendingEmail → decrypt
+- `src/app/api/users/[id]/email/confirm/route.ts:41-42` — same
+- `src/app/api/users/[id]/email/resend/route.ts:36` — select pendingEmail → decrypt
+- `src/app/api/users/[id]/route.ts:48` — response.email → decrypt
+- `src/app/hello/page.tsx:41` — `{user.email}` from session (adapter decrypts before session is created)
 
-**API exposures (owner/admin only):**
-- `src/app/api/users/[id]/route.ts:48` — `response.email = found.email`
-- `src/app/hello/page.tsx:41` — `{user.email}` in client component
+**better-auth hook interactions:**
+- `src/lib/auth.ts:66,84` — `user.email` passed to email functions (already decrypted by adapter)
+- `src/lib/auth.ts:78` — `eq(schema.inviteToken.email, user.email)` → use `emailHash` + `hmacHash()`
+- `src/lib/auth.ts:23` — `eq(schema.inviteToken.email, email)` → use `emailHash` + `hmacHash()`
 
-**better-auth interactions:**
-- `src/lib/auth.ts:66,84` — `user.email` passed to email functions
-- `src/lib/auth.ts:78` — `eq(schema.inviteToken.email, user.email)` in verification hook
-- `src/lib/auth.ts:23` — `eq(schema.inviteToken.email, email)` in signup guard
+### session.token / session.ipAddress (adapter-wrapped)
 
-### session.token / session.ipAddress
-- No explicit application queries — better-auth manages via drizzle adapter
-- `src/app/api/users/[id]/ban/route.ts:85` — deletes sessions by userId (not by token)
+- All managed by better-auth via adapter — wrapper handles transparently
+- `src/app/api/users/[id]/ban/route.ts:85` — deletes sessions by userId (not by token) — no change needed
 
-### account.accessToken / account.refreshToken
-- Schema definition only — no OAuth providers configured, no application queries
+### account.accessToken / account.refreshToken (built-in)
 
-### inviteToken.token
-- `src/app/api/invites/[token]/route.ts:13` — `eq(inviteToken.token, token)`
-- `src/app/api/invites/[token]/accept/route.ts:13` — `eq(inviteToken.token, token)`
-- `src/app/api/invites/route.ts:100` — token exposed in creation response
-- `src/app/api/invites/route.ts:121` — all invites returned to admins
+- Handled by `encryptOAuthTokens: true` — no custom code needed
 
-### inviteToken.email
-- `src/lib/auth.ts:23` — `eq(schema.inviteToken.email, email)` in signup guard
-- `src/lib/auth.ts:78` — `eq(schema.inviteToken.email, user.email)` in verification hook
-- `src/app/api/invites/route.ts:62` — `eq(user.email, email)` uniqueness check
+### inviteToken.token / inviteToken.email (explicit app code)
 
-### emailVerificationCode.email (5 query sites)
-- `src/app/api/verify-code/route.ts:22`
-- `src/app/api/verify-code/resend/route.ts:43`
-- `src/app/api/users/[id]/email/route.ts:86`
-- `src/app/api/users/[id]/email/confirm/route.ts:75`
-- `src/app/api/users/[id]/email/resend/route.ts:54`
+- `src/app/api/invites/[token]/route.ts:13` — `eq(inviteToken.token, token)` → `eq(inviteToken.tokenHash, hmacHash(token))`
+- `src/app/api/invites/[token]/accept/route.ts:13` — same
+- `src/app/api/invites/route.ts:100` — token in creation response → decrypt
+- `src/app/api/invites/route.ts:121` — all invites listed → decrypt email/token
+- `src/lib/auth.ts:23,78` — inviteToken.email lookups → use emailHash (covered in Step 4)
 
-### auditLog.targetEmail
-- Written by `src/lib/audit.ts:24`
-- Exposed in `src/app/api/audit-logs/route.ts:52` and `src/app/admin/audit/page.tsx:176`
+### emailVerificationCode.email (explicit app code)
+
+- `src/app/api/verify-code/route.ts:22` — `eq(emailVerificationCode.email, email)` → use emailHash
+- `src/app/api/verify-code/resend/route.ts:43` — same
+- `src/app/api/users/[id]/email/route.ts:86` — same
+- `src/app/api/users/[id]/email/confirm/route.ts:75` — same
+- `src/app/api/users/[id]/email/resend/route.ts:54` — same
+
+### verification.value (adapter-wrapped)
+
+- better-auth internal only — adapter wrapper handles transparently
+
+### auditLog.targetEmail (explicit app code)
+
+- `src/lib/audit.ts:24` — encrypt on write
+- `src/app/api/audit-logs/route.ts:52` — decrypt on read
+- `src/app/admin/audit/page.tsx:176` — displays value from API (already decrypted by route)
+
+## Existing Utilities to Leverage
+
+- `src/lib/verification-code.ts` — `hashCode()` uses SHA-256; similar pattern for HMAC
+- `src/db/index.ts` — single Drizzle instance shared by app code and adapter
+- `drizzle-kit` — for schema migrations
+- Node.js `crypto` — built-in, no new dependencies needed
+- better-auth `encryptOAuthTokens` — built-in OAuth token encryption
 
 ## Success Criteria
 
