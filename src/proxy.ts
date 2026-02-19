@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SESSION_COOKIE = "better-auth.session_token";
+const SESSION_COOKIE_NAMES = [
+  "__Secure-better-auth.session_token",
+  "better-auth.session_token",
+];
 
 const PUBLIC_PATHS = ["/", "/login", "/register", "/verify-email", "/forgot-password", "/reset-password"];
 
@@ -19,7 +22,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const hasSession = request.cookies.has(SESSION_COOKIE);
+  const hasSession = SESSION_COOKIE_NAMES.some((name) =>
+    request.cookies.has(name),
+  );
 
   if (!hasSession) {
     if (pathname.startsWith("/api/")) {
