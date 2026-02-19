@@ -10,7 +10,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sendVerificationEmail } from "@/lib/email";
 
-const ALPHANUMERIC_RE = /^[a-zA-Z0-9]+$/;
+const PRINTABLE_RE = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~ ]+$/;
 
 const validatePassword = createAuthMiddleware(async (ctx) => {
   if (
@@ -24,9 +24,9 @@ const validatePassword = createAuthMiddleware(async (ctx) => {
   const password =
     (body?.password as string) ?? (body?.newPassword as string);
 
-  if (password && !ALPHANUMERIC_RE.test(password)) {
+  if (password && !PRINTABLE_RE.test(password)) {
     throw new APIError("BAD_REQUEST", {
-      message: "Password must contain only letters and numbers",
+      message: "Password must contain only printable characters",
     });
   }
 });
