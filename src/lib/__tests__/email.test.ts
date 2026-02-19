@@ -97,6 +97,24 @@ describe("email", () => {
     });
   });
 
+  describe("sendEmailChangeVerificationEmail", () => {
+    it("sends with correct subject and body for email change", async () => {
+      const { sendEmailChangeVerificationEmail } = await loadModule();
+      await sendEmailChangeVerificationEmail({
+        email: "new@example.com",
+        code: "WXYZ5678",
+      });
+
+      expect(mockSend).toHaveBeenCalledOnce();
+      const call = mockSend.mock.calls[0][0];
+      expect(call.from).toBe("test@example.com");
+      expect(call.to).toBe("new@example.com");
+      expect(call.subject).toContain("Confirm your new email");
+      expect(call.html).toContain("WXYZ 5678");
+      expect(call.html).toContain("email change");
+    });
+  });
+
   describe("missing API key", () => {
     it("throws when RESEND_API_KEY is not set", async () => {
       delete process.env.RESEND_API_KEY;
