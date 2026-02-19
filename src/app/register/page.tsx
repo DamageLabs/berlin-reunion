@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signUp } from "@/lib/auth-client";
 
 interface InviteInfo {
   email: string;
@@ -50,54 +49,55 @@ function RegisterForm() {
     setSuccess("");
     setLoading(true);
 
-    if (inviteToken && invite) {
-      try {
-        const res = await fetch(`/api/invites/${inviteToken}/accept`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, username, password }),
-        });
+    try {
+      const res = await fetch(`/api/invites/${inviteToken}/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, username, password }),
+      });
 
-        if (!res.ok) {
-          const data = await res.json();
-          setError(data.error ?? "Registration failed");
-          setLoading(false);
-          return;
-        }
-
-        setSuccess("Account created! You can now sign in.");
-        setTimeout(() => router.push("/login"), 2000);
-      } catch {
-        setError("Registration failed");
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "Registration failed");
+        setLoading(false);
+        return;
       }
-    } else {
-      await signUp.email(
-        { email, password, name, username },
-        {
-          onSuccess: () => {
-            setSuccess(
-              "Account created! Check your email to verify your address.",
-            );
-          },
-          onError: (ctx) => {
-            setError(ctx.error.message ?? "Registration failed");
-          },
-        },
-      );
+
+      setSuccess("Account created! You can now sign in.");
+      setTimeout(() => router.push("/login"), 2000);
+    } catch {
+      setError("Registration failed");
     }
 
     setLoading(false);
   }
 
-  if (inviteToken && inviteError) {
+  // No invite token — show invite-required message
+  if (!inviteToken) {
+    return (
+      <div className="w-full max-w-sm space-y-4 text-center">
+        <h1 className="text-2xl font-bold">Invite Required</h1>
+        <p className="text-sm text-silver">
+          Registration is by invitation only. Ask an existing member to send you
+          an invite.
+        </p>
+        <Link href="/login" className="text-sm font-medium underline">
+          Sign In
+        </Link>
+      </div>
+    );
+  }
+
+  // Invalid or expired invite token
+  if (inviteError) {
     return (
       <div className="w-full max-w-sm space-y-4 text-center">
         <h1 className="text-2xl font-bold">Invalid Invite</h1>
         <p className="text-sm text-crimson dark:text-crimson">
           {inviteError}
         </p>
-        <Link href="/register" className="text-sm font-medium underline">
-          Register without invite
+        <Link href="/login" className="text-sm font-medium underline">
+          Sign In
         </Link>
       </div>
     );
@@ -113,7 +113,7 @@ function RegisterForm() {
           </p>
         ) : (
           <p className="mt-1 text-sm text-silver">
-            Join Berlin Reunion
+            Validating invite...
           </p>
         )}
       </div>

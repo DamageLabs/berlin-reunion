@@ -71,17 +71,9 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <>
-              <NavLink href="/login" current={pathname}>
-                Sign In
-              </NavLink>
-              <Link
-                href="/register"
-                className="ml-1 rounded-md bg-gold px-3 py-1.5 text-sm font-medium text-navy hover:bg-gold-dark"
-              >
-                Register
-              </Link>
-            </>
+            <NavLink href="/login" current={pathname}>
+              Sign In
+            </NavLink>
           )}
         </nav>
       </div>

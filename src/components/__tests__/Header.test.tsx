@@ -45,12 +45,12 @@ describe("Header", () => {
     mockUsePathname.mockReturnValue("/");
   });
 
-  it("shows Sign In and Register when logged out", () => {
+  it("shows Sign In but not Register when logged out", () => {
     mockUseSession.mockReturnValue({ data: null, isPending: false });
     render(<Header />);
 
     expect(screen.getByText("Sign In")).toBeInTheDocument();
-    expect(screen.getByText("Register")).toBeInTheDocument();
+    expect(screen.queryByText("Register")).not.toBeInTheDocument();
     expect(screen.queryByText("Sign Out")).not.toBeInTheDocument();
   });
 

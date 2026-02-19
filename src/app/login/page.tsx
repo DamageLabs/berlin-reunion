@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { signIn } from "@/lib/auth-client";
 
 function LoginForm() {
@@ -89,10 +88,7 @@ function LoginForm() {
       </form>
 
       <p className="text-center text-sm text-silver">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium underline">
-          Register
-        </Link>
+        Registration is by invitation only.
       </p>
     </div>
   );

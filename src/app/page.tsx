@@ -24,12 +24,6 @@ export default function Home() {
           >
             Sign In
           </Link>
-          <Link
-            href="/register"
-            className="rounded-md border border-silver px-6 py-2 text-sm font-medium text-silver hover:bg-white/10"
-          >
-            Register
-          </Link>
         </div>
       </main>
     </div>
