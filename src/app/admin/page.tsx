@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession, authClient } from "@/lib/auth-client";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface UserRecord {
   id: string;
@@ -50,6 +51,22 @@ export default function AdminPage() {
   const [banDuration, setBanDuration] = useState("permanent");
   const [banError, setBanError] = useState("");
   const [revokeError, setRevokeError] = useState("");
+
+  const [pendingRole, setPendingRole] = useState<{
+    userId: string;
+    name: string;
+    oldRole: string;
+    newRole: string;
+  } | null>(null);
+  const [inviteConfirmOpen, setInviteConfirmOpen] = useState(false);
+  const [unbanTarget, setUnbanTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<{
+    token: string;
+    email: string;
+  } | null>(null);
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
@@ -164,8 +181,7 @@ export default function AdminPage() {
     }
   }
 
-  async function handleRevoke(token: string, email: string) {
-    if (!window.confirm(`Revoke invite to ${email}?`)) return;
+  async function handleRevoke(token: string) {
     setRevokeError("");
     try {
       const res = await fetch(`/api/invites/${token}`, {
@@ -186,8 +202,7 @@ export default function AdminPage() {
     }
   }
 
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleInvite() {
     setInviteError("");
     setInviteSuccess("");
     setInviteLoading(true);
@@ -247,7 +262,13 @@ export default function AdminPage() {
       {/* Send Invite */}
       <section className="mb-8">
         <h2 className="mb-4 text-lg font-semibold">Send Invite</h2>
-        <form onSubmit={handleInvite} className="flex flex-wrap gap-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setInviteConfirmOpen(true);
+          }}
+          className="flex flex-wrap gap-3"
+        >
           <input
             type="email"
             required
@@ -346,7 +367,14 @@ export default function AdminPage() {
                       <select
                         value={u.role ?? "user"}
                         disabled={u.id === session.user.id}
-                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                        onChange={(e) =>
+                          setPendingRole({
+                            userId: u.id,
+                            name: u.name,
+                            oldRole: u.role ?? "user",
+                            newRole: e.target.value,
+                          })
+                        }
                         className="rounded border border-silver/30 bg-transparent px-2 py-0.5 text-sm capitalize disabled:opacity-50 dark:border-silver/20"
                       >
                         <option value="user">User</option>
@@ -381,7 +409,9 @@ export default function AdminPage() {
                       (ROLE_HIERARCHY[u.role ?? "user"] ?? 0) < callerLevel && (
                         u.banned ? (
                           <button
-                            onClick={() => handleUnban(u.id)}
+                            onClick={() =>
+                              setUnbanTarget({ id: u.id, name: u.name })
+                            }
                             className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
                           >
                             Unban
@@ -449,7 +479,12 @@ export default function AdminPage() {
                     <td className="py-2">
                       {isPending && (
                         <button
-                          onClick={() => handleRevoke(inv.token, inv.email)}
+                          onClick={() =>
+                            setRevokeTarget({
+                              token: inv.token,
+                              email: inv.email,
+                            })
+                          }
                           className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
                         >
                           Revoke
@@ -463,6 +498,69 @@ export default function AdminPage() {
           </table>
         </div>
       </section>
+
+      {/* Role Change Confirmation */}
+      <ConfirmDialog
+        open={pendingRole !== null}
+        title="Change role?"
+        message={
+          pendingRole
+            ? `Change ${pendingRole.name}\u2019s role from ${pendingRole.oldRole} to ${pendingRole.newRole}?`
+            : ""
+        }
+        confirmLabel="Change Role"
+        onConfirm={() => {
+          if (pendingRole) {
+            handleRoleChange(pendingRole.userId, pendingRole.newRole);
+          }
+          setPendingRole(null);
+        }}
+        onCancel={() => setPendingRole(null)}
+      />
+
+      {/* Send Invite Confirmation */}
+      <ConfirmDialog
+        open={inviteConfirmOpen}
+        title="Send invite?"
+        message={`Send invite to ${inviteEmail} as ${inviteRole}?`}
+        confirmLabel="Send Invite"
+        onConfirm={() => {
+          setInviteConfirmOpen(false);
+          handleInvite();
+        }}
+        onCancel={() => setInviteConfirmOpen(false)}
+      />
+
+      {/* Unban Confirmation */}
+      <ConfirmDialog
+        open={unbanTarget !== null}
+        title="Unban user?"
+        message={unbanTarget ? `Unban ${unbanTarget.name}?` : ""}
+        confirmLabel="Unban"
+        onConfirm={() => {
+          if (unbanTarget) {
+            handleUnban(unbanTarget.id);
+          }
+          setUnbanTarget(null);
+        }}
+        onCancel={() => setUnbanTarget(null)}
+      />
+
+      {/* Revoke Invite Confirmation */}
+      <ConfirmDialog
+        open={revokeTarget !== null}
+        title="Revoke invite?"
+        message={revokeTarget ? `Revoke invite to ${revokeTarget.email}?` : ""}
+        confirmLabel="Revoke"
+        danger
+        onConfirm={() => {
+          if (revokeTarget) {
+            handleRevoke(revokeTarget.token);
+          }
+          setRevokeTarget(null);
+        }}
+        onCancel={() => setRevokeTarget(null)}
+      />
 
       {/* Ban Modal */}
       {banTarget && (
