@@ -11,22 +11,36 @@ import * as schema from "@/db/schema";
 import { sendVerificationEmail } from "@/lib/email";
 import { PRINTABLE_RE } from "@/lib/password-rules";
 
-const validatePassword = createAuthMiddleware(async (ctx) => {
-  if (
-    ctx.path !== "/sign-up/email" &&
-    ctx.path !== "/change-password"
-  ) {
-    return;
+const signupGuard = createAuthMiddleware(async (ctx) => {
+  const body = ctx.body as Record<string, unknown> | undefined;
+
+  // Require a valid invite for signup
+  if (ctx.path === "/sign-up/email") {
+    const email = body?.email as string | undefined;
+    if (email) {
+      const invite = await db.query.inviteToken.findFirst({
+        where: and(
+          eq(schema.inviteToken.email, email),
+          eq(schema.inviteToken.used, false),
+        ),
+      });
+      if (!invite) {
+        throw new APIError("FORBIDDEN", {
+          message: "Registration requires a valid invite",
+        });
+      }
+    }
   }
 
-  const body = ctx.body as Record<string, unknown> | undefined;
-  const password =
-    (body?.password as string) ?? (body?.newPassword as string);
-
-  if (password && !PRINTABLE_RE.test(password)) {
-    throw new APIError("BAD_REQUEST", {
-      message: "Password must contain only printable characters",
-    });
+  // Validate password on signup and password change
+  if (ctx.path === "/sign-up/email" || ctx.path === "/change-password") {
+    const password =
+      (body?.password as string) ?? (body?.newPassword as string);
+    if (password && !PRINTABLE_RE.test(password)) {
+      throw new APIError("BAD_REQUEST", {
+        message: "Password must contain only printable characters",
+      });
+    }
   }
 });
 
@@ -82,7 +96,7 @@ export const auth = betterAuth({
   ],
 
   hooks: {
-    before: validatePassword,
+    before: signupGuard,
   },
 });
 
