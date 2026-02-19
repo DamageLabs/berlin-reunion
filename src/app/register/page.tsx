@@ -63,8 +63,15 @@ function RegisterForm() {
         return;
       }
 
-      setSuccess("Account created! You can now sign in.");
-      setTimeout(() => router.push("/login"), 2000);
+      setSuccess("Account created! Redirecting to verify your email...");
+      const inviteEmail = invite?.email ?? email;
+      setTimeout(
+        () =>
+          router.push(
+            `/verify-email?email=${encodeURIComponent(inviteEmail)}`,
+          ),
+        2000,
+      );
     } catch {
       setError("Registration failed");
     }
