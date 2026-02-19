@@ -81,6 +81,17 @@ export const rateLimit = sqliteTable("rate_limit", {
   lastRequest: integer("last_request"),
 });
 
+// ─── Email Verification Code ────────────────────────────────────────────────
+// 8-digit alphanumeric code for email ownership proof
+export const emailVerificationCode = sqliteTable("email_verification_code", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull(),
+  codeHash: text("code_hash").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {
