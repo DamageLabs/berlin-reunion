@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +23,16 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Email change state
+  const [currentEmail, setCurrentEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailChangeStep, setEmailChangeStep] = useState<"idle" | "pending">("idle");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   // Fetch profile data from DB so custom fields persist across reloads
   useEffect(() => {
     if (!session) return;
@@ -36,8 +46,30 @@ export default function ProfilePage() {
         setPlatoon(data.platoon ?? "");
         setYearsServed(data.yearsServed ?? "");
         setCurrentImage(data.image ?? null);
+        setCurrentEmail(data.email ?? "");
+        if (data.pendingEmail) {
+          setNewEmail(data.pendingEmail);
+          setEmailChangeStep("pending");
+        }
       });
   }, [session]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleEmailCodeChange = useCallback((value: string) => {
+    const raw = value.toUpperCase().replace(/[^A-Z0-9 ]/g, "");
+    const stripped = raw.replace(/\s/g, "");
+    if (stripped.length > 4) {
+      setEmailCode(`${stripped.slice(0, 4)} ${stripped.slice(4, 8)}`);
+    } else {
+      setEmailCode(stripped);
+    }
+  }, []);
 
   if (isPending) {
     return (
@@ -50,6 +82,94 @@ export default function ProfilePage() {
   if (!session) {
     router.push("/login");
     return null;
+  }
+
+  async function handleInitiateEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    setEmailLoading(true);
+
+    try {
+      const res = await fetch(`/api/users/${session!.user.id}/email`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newEmail }),
+      });
+
+      if (res.ok) {
+        setEmailChangeStep("pending");
+        setResendCooldown(60);
+      } else {
+        const body = await res.json();
+        setEmailError(body.error ?? "Failed to send verification code");
+      }
+    } catch {
+      setEmailError("Failed to send verification code");
+    }
+    setEmailLoading(false);
+  }
+
+  async function handleConfirmEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    setEmailLoading(true);
+
+    try {
+      const res = await fetch(`/api/users/${session!.user.id}/email/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: emailCode.replace(/\s/g, "") }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setCurrentEmail(data.email);
+        setNewEmail("");
+        setEmailCode("");
+        setEmailChangeStep("idle");
+        setEmailSuccess("Email updated successfully.");
+      } else {
+        setEmailError(
+          data.remainingAttempts !== undefined
+            ? `${data.error} (${data.remainingAttempts} attempt${data.remainingAttempts !== 1 ? "s" : ""} remaining)`
+            : data.error,
+        );
+      }
+    } catch {
+      setEmailError("Failed to verify code");
+    }
+    setEmailLoading(false);
+  }
+
+  async function handleResendEmailCode() {
+    if (resendCooldown > 0) return;
+    setEmailError("");
+
+    try {
+      const res = await fetch(`/api/users/${session!.user.id}/email/resend`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        setResendCooldown(60);
+      } else {
+        const body = await res.json();
+        setEmailError(body.error ?? "Failed to resend code");
+      }
+    } catch {
+      setEmailError("Failed to resend code");
+    }
+  }
+
+  function handleCancelEmailChange() {
+    setEmailChangeStep("idle");
+    setEmailCode("");
+    setNewEmail("");
+    setEmailError("");
+    setEmailSuccess("");
   }
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -265,6 +385,104 @@ export default function ProfilePage() {
             {saving ? "Saving..." : "Save Profile"}
           </button>
         </form>
+
+        {/* Email change section */}
+        <div className="border-t border-silver/20 pt-6 space-y-3">
+          <h2 className="text-lg font-semibold">Change Email</h2>
+
+          {emailError && (
+            <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+              {emailError}
+            </div>
+          )}
+          {emailSuccess && (
+            <div className="rounded-md bg-field-green/10 p-3 text-sm text-field-green dark:bg-field-green/20">
+              {emailSuccess}
+            </div>
+          )}
+
+          {emailChangeStep === "idle" ? (
+            <form onSubmit={handleInitiateEmailChange} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium">
+                  Current Email
+                </label>
+                <p className="mt-1 text-sm text-silver">{currentEmail}</p>
+              </div>
+              <div>
+                <label htmlFor="newEmail" className="block text-sm font-medium">
+                  New Email
+                </label>
+                <input
+                  id="newEmail"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Enter new email address"
+                  required
+                  className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={emailLoading || !newEmail.trim()}
+                className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+              >
+                {emailLoading ? "Sending..." : "Send Verification Code"}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-silver">
+                Code sent to <strong>{newEmail}</strong>
+              </p>
+              <form onSubmit={handleConfirmEmailChange} className="space-y-3">
+                <div>
+                  <label htmlFor="emailCode" className="block text-sm font-medium">
+                    Verification Code
+                  </label>
+                  <input
+                    id="emailCode"
+                    type="text"
+                    required
+                    maxLength={9}
+                    value={emailCode}
+                    onChange={(e) => handleEmailCodeChange(e.target.value)}
+                    placeholder="ABCD EFGH"
+                    autoComplete="one-time-code"
+                    className="mt-1 block w-full rounded-md border border-silver px-3 py-3 text-center font-mono text-lg tracking-widest shadow-sm uppercase focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={emailLoading || emailCode.replace(/\s/g, "").length < 8}
+                  className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+                >
+                  {emailLoading ? "Confirming..." : "Confirm Email Change"}
+                </button>
+              </form>
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleResendEmailCode}
+                  disabled={resendCooldown > 0}
+                  className="text-sm font-medium underline disabled:opacity-50 disabled:no-underline"
+                >
+                  {resendCooldown > 0
+                    ? `Resend code in ${resendCooldown}s`
+                    : "Resend code"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEmailChange}
+                  className="text-sm font-medium text-silver underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <p className="text-center">
           <Link
