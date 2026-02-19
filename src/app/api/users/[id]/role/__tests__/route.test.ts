@@ -18,6 +18,26 @@ vi.mock("@/lib/auth", () => ({
   },
 }));
 
+const mockSelect = vi.fn();
+vi.mock("@/db", () => ({
+  db: {
+    select: (...args: unknown[]) => mockSelect(...args),
+  },
+}));
+
+vi.mock("@/db/schema", () => ({
+  user: { id: "user.id", role: "user.role" },
+}));
+
+vi.mock("drizzle-orm", () => ({
+  eq: (col: unknown, val: unknown) => ({ col, val }),
+}));
+
+const mockLogAuditEvent = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/audit", () => ({
+  logAuditEvent: (...args: unknown[]) => mockLogAuditEvent(...args),
+}));
+
 import { POST } from "../route";
 
 // --- Helpers ---
@@ -116,6 +136,11 @@ describe("POST /api/users/[id]/role", () => {
       role: "moderator",
     };
     mockSetRole.mockResolvedValue({ user: updatedUser });
+    mockSelect.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([{ role: "user" }]),
+      }),
+    });
 
     const res = await POST(
       makeRequest("user-1", { role: "moderator" }),
@@ -131,10 +156,22 @@ describe("POST /api/users/[id]/role", () => {
         body: { userId: "user-1", role: "moderator" },
       }),
     );
+
+    expect(mockLogAuditEvent).toHaveBeenCalledWith({
+      action: "role.change",
+      actorId: "admin-1",
+      targetId: "user-1",
+      detail: { oldRole: "user", newRole: "moderator" },
+    });
   });
 
   it("returns 500 when setRole throws", async () => {
     mockGetSession.mockResolvedValue(adminSession());
+    mockSelect.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([{ role: "user" }]),
+      }),
+    });
     mockSetRole.mockRejectedValue(new Error("User not found"));
 
     const res = await POST(
