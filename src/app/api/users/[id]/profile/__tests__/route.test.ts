@@ -16,9 +16,15 @@ vi.mock("@/lib/auth", () => ({
 
 const mockUpdate = vi.fn();
 const mockWhere = vi.fn(() => ({ returning: vi.fn().mockResolvedValue([]) }));
+const mockFindFirst = vi.fn();
 vi.mock("@/db", () => ({
   db: {
     update: (...args: unknown[]) => mockUpdate(...args),
+    query: {
+      user: {
+        findFirst: (...args: unknown[]) => mockFindFirst(...args),
+      },
+    },
   },
 }));
 
@@ -56,6 +62,7 @@ describe("PATCH /api/users/[id]/profile", () => {
     mockUpdate.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: mockWhere }),
     });
+    mockFindFirst.mockResolvedValue(null);
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -142,5 +149,66 @@ describe("PATCH /api/users/[id]/profile", () => {
       makeParams("user-1"),
     );
     expect(res.status).toBe(400);
+  });
+
+  // --- Name tests ---
+
+  it("updates name successfully", async () => {
+    mockGetSession.mockResolvedValue(userSession());
+    const res = await PATCH(
+      makeRequest("user-1", { name: "  John Doe  " }),
+      makeParams("user-1"),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe("John Doe");
+  });
+
+  it("returns 400 when name is empty", async () => {
+    mockGetSession.mockResolvedValue(userSession());
+    const res = await PATCH(
+      makeRequest("user-1", { name: "   " }),
+      makeParams("user-1"),
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe("name cannot be empty");
+  });
+
+  // --- Username tests ---
+
+  it("updates username successfully", async () => {
+    mockGetSession.mockResolvedValue(userSession());
+    mockFindFirst.mockResolvedValue(null);
+    const res = await PATCH(
+      makeRequest("user-1", { username: "  johndoe  " }),
+      makeParams("user-1"),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.username).toBe("johndoe");
+  });
+
+  it("returns 400 when username is empty", async () => {
+    mockGetSession.mockResolvedValue(userSession());
+    const res = await PATCH(
+      makeRequest("user-1", { username: "   " }),
+      makeParams("user-1"),
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe("username cannot be empty");
+  });
+
+  it("returns 409 when username is already taken", async () => {
+    mockGetSession.mockResolvedValue(userSession());
+    mockFindFirst.mockResolvedValue({ id: "user-2", username: "taken" });
+    const res = await PATCH(
+      makeRequest("user-1", { username: "taken" }),
+      makeParams("user-1"),
+    );
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.error).toBe("username is already taken");
   });
 });

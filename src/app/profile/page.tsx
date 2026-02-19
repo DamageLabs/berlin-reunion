@@ -11,6 +11,8 @@ export default function ProfilePage() {
   const { data: session, isPending } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [location, setLocation] = useState("");
   const [platoon, setPlatoon] = useState("");
   const [yearsServed, setYearsServed] = useState("");
@@ -28,6 +30,8 @@ export default function ProfilePage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return;
+        setName(data.name ?? "");
+        setUsername(data.username ?? "");
         setLocation(data.location ?? "");
         setPlatoon(data.platoon ?? "");
         setYearsServed(data.yearsServed ?? "");
@@ -57,7 +61,7 @@ export default function ProfilePage() {
     const res = await fetch(`/api/users/${session!.user.id}/profile`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location, platoon, yearsServed }),
+      body: JSON.stringify({ name, username, location, platoon, yearsServed }),
     });
 
     if (res.ok) {
@@ -183,6 +187,32 @@ export default function ProfilePage() {
 
         {/* Profile fields */}
         <form onSubmit={handleSaveProfile} className="space-y-3">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your full name"
+              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            />
+          </div>
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your username"
+              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            />
+          </div>
           <div>
             <label htmlFor="platoon" className="block text-sm font-medium">
               Platoon
