@@ -80,8 +80,8 @@ nginx -v   # 1.x
 
 ```bash
 sudo useradd -m -s /bin/bash berlin
-sudo mkdir -p /opt/berlin-reunion
-sudo chown berlin:berlin /opt/berlin-reunion
+sudo mkdir -p /var/www/berlin-reunion
+sudo chown berlin:berlin /var/www/berlin-reunion
 ```
 
 ## 6. Deploy the application
@@ -90,7 +90,7 @@ Clone and build as the `berlin` user:
 
 ```bash
 sudo -u berlin bash
-cd /opt/berlin-reunion
+cd /var/www/berlin-reunion
 
 git clone https://github.com/DamageLabs/berlin-reunion.git .
 npm ci
@@ -150,7 +150,7 @@ After=network.target
 Type=simple
 User=berlin
 Group=berlin
-WorkingDirectory=/opt/berlin-reunion
+WorkingDirectory=/var/www/berlin-reunion
 ExecStart=/usr/bin/npm start
 Restart=on-failure
 RestartSec=5
@@ -255,7 +255,7 @@ You should see `HTTP/2 200` with proper headers.
 
 ```bash
 sudo -u berlin bash
-cd /opt/berlin-reunion
+cd /var/www/berlin-reunion
 git pull origin main
 npm ci
 npx drizzle-kit push    # apply any new migrations
@@ -269,7 +269,7 @@ sudo systemctl restart berlin-reunion
 
 ```bash
 # SQLite safe backup (handles WAL mode correctly)
-sudo -u berlin sqlite3 /opt/berlin-reunion/data/berlin-reunion.db ".backup /opt/berlin-reunion/data/backup-$(date +%Y%m%d).db"
+sudo -u berlin sqlite3 /var/www/berlin-reunion/data/berlin-reunion.db ".backup /var/www/berlin-reunion/data/backup-$(date +%Y%m%d).db"
 ```
 
 Consider a cron job for daily backups:
@@ -277,10 +277,10 @@ Consider a cron job for daily backups:
 ```bash
 sudo tee /etc/cron.daily/berlin-reunion-backup > /dev/null <<'EOF'
 #!/bin/bash
-sudo -u berlin sqlite3 /opt/berlin-reunion/data/berlin-reunion.db \
-  ".backup /opt/berlin-reunion/data/backup-$(date +\%Y\%m\%d).db"
+sudo -u berlin sqlite3 /var/www/berlin-reunion/data/berlin-reunion.db \
+  ".backup /var/www/berlin-reunion/data/backup-$(date +\%Y\%m\%d).db"
 # Keep last 14 days
-find /opt/berlin-reunion/data -name "backup-*.db" -mtime +14 -delete
+find /var/www/berlin-reunion/data -name "backup-*.db" -mtime +14 -delete
 EOF
 sudo chmod +x /etc/cron.daily/berlin-reunion-backup
 ```
