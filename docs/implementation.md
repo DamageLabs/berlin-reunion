@@ -20,6 +20,10 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | 6 | ~~**#24** Confirmation dialogs~~ | ~~Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value.~~ |
 | 7 | ~~**#32** Audit logging~~ | ~~With ban/revoke/role-change all live, an audit trail becomes important for accountability.~~ |
 | 7a | ~~**#45** Email change requires re-verification~~ | ~~Users who change their email must re-verify via the existing 8-digit code flow. Depends on #44.~~ |
+| 7b | **#54** Admin/moderator password reset for users | Admins/moderators can reset a user's password when self-service recovery isn't possible. Role hierarchy enforced. |
+| 7c | **#55** Log login attempts and status in audit logs | Capture successful and failed login events for security visibility. Extends audit logging (#32). |
+| 7d | **#56** Admin/moderator manual email verification | Admins/moderators can manually verify a user's email when the normal flow fails. |
+| 7e | **#57** Allow admins to delete users | Permanent user removal for spam, duplicates, or GDPR requests. Cascades sessions/accounts. Audit logged. |
 
 ## Tier 3 — Scalability & Data Management
 
@@ -38,7 +42,13 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | 13 | **#25** Dark mode toggle | CSS custom properties already exist. Just needs a toggle + persistence. |
 | 14 | **#41** React Email templates | Developer experience. Best done before adding more email templates but not user-facing urgent. |
 
-## Tier 5 — Infrastructure (pre-launch)
+## Tier 5 — Community Features
+
+| Order | Issue | Rationale |
+|-------|-------|-----------|
+| 14a | **#58** Calendar view with recurring events | Admins/moderators create events (e.g. Zoom calls, meetups). All users can view. Adds core community engagement functionality. |
+
+## Tier 6 — Infrastructure (pre-launch)
 
 | Order | Issue | Rationale |
 |-------|-------|-----------|
