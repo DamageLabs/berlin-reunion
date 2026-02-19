@@ -92,6 +92,20 @@ export const emailVerificationCode = sqliteTable("email_verification_code", {
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
 });
 
+// ─── Audit Log ─────────────────────────────────────────────────────────────
+// Immutable record of admin actions for accountability
+export const auditLog = sqliteTable("audit_log", {
+  id: text("id").primaryKey(),
+  action: text("action").notNull(),
+  actorId: text("actor_id")
+    .notNull()
+    .references(() => user.id),
+  targetId: text("target_id"),
+  targetEmail: text("target_email"),
+  detail: text("detail"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {
