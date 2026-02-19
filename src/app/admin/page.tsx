@@ -36,6 +36,7 @@ export default function AdminPage() {
   const [inviteError, setInviteError] = useState("");
   const [inviteSuccess, setInviteSuccess] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [roleError, setRoleError] = useState("");
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
@@ -108,6 +109,27 @@ export default function AdminPage() {
     setInviteLoading(false);
   }
 
+  async function handleRoleChange(userId: string, newRole: string) {
+    setRoleError("");
+    try {
+      const res = await fetch(`/api/users/${userId}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setRoleError(data.error ?? "Failed to update role");
+        return;
+      }
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
+      );
+    } catch {
+      setRoleError("Failed to update role");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8">
@@ -164,6 +186,9 @@ export default function AdminPage() {
         <h2 className="mb-4 text-lg font-semibold">
           Users ({users.length})
         </h2>
+        {roleError && (
+          <p className="mb-3 text-sm text-crimson">{roleError}</p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -184,7 +209,22 @@ export default function AdminPage() {
                   <td className="py-2 pr-4">{u.name}</td>
                   <td className="py-2 pr-4 text-silver">{u.email}</td>
                   <td className="py-2 pr-4">{u.username ?? "—"}</td>
-                  <td className="py-2 pr-4 capitalize">{u.role ?? "user"}</td>
+                  <td className="py-2 pr-4">
+                    {role === "admin" ? (
+                      <select
+                        value={u.role ?? "user"}
+                        disabled={u.id === session.user.id}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                        className="rounded border border-silver/30 bg-transparent px-2 py-0.5 text-sm capitalize disabled:opacity-50 dark:border-silver/20"
+                      >
+                        <option value="user">User</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    ) : (
+                      <span className="capitalize">{u.role ?? "user"}</span>
+                    )}
+                  </td>
                   <td className="py-2">
                     {u.emailVerified ? "Yes" : "No"}
                   </td>
