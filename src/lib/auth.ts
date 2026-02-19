@@ -8,7 +8,7 @@ import { admin } from "better-auth/plugins/admin";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendVerificationEmail, sendResetPasswordEmail } from "@/lib/email";
 import { PRINTABLE_RE } from "@/lib/password-rules";
 
 const signupGuard = createAuthMiddleware(async (ctx) => {
@@ -32,8 +32,12 @@ const signupGuard = createAuthMiddleware(async (ctx) => {
     }
   }
 
-  // Validate password on signup and password change
-  if (ctx.path === "/sign-up/email" || ctx.path === "/change-password") {
+  // Validate password on signup, password change, and password reset
+  if (
+    ctx.path === "/sign-up/email" ||
+    ctx.path === "/change-password" ||
+    ctx.path === "/reset-password"
+  ) {
     const password =
       (body?.password as string) ?? (body?.newPassword as string);
     if (password && !PRINTABLE_RE.test(password)) {
@@ -58,6 +62,9 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     autoSignIn: true,
     requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPasswordEmail({ email: user.email, url });
+    },
   },
 
   emailVerification: {
