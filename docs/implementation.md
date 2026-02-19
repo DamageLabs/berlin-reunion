@@ -17,7 +17,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 |-------|-------|-----------|
 | 4 | ~~**#22** Ban/unban users~~ | ~~Schema columns already exist. Admins need this to moderate once invite-only registration brings in real users.~~ |
 | 5 | ~~**#21** Invite revocation~~ | ~~Now that invites are the only entry point (#36), admins need to cancel mistaken ones.~~ |
-| 6 | **#24** Confirmation dialogs | Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value. |
+| 6 | ~~**#24** Confirmation dialogs~~ | ~~Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value.~~ |
 | 7 | **#32** Audit logging | With ban/revoke/role-change all live, an audit trail becomes important for accountability. |
 | 7a | **#45** Email change requires re-verification | Users who change their email must re-verify via the existing 8-digit code flow. Depends on #44. |
 
@@ -49,7 +49,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 ## Dependency Chains
 
 - ~~**#36**~~ → ~~**#21**~~ → **#28**: invite-only registration (done) makes revocation and resend meaningful
-- ~~**#22**~~ + ~~**#21**~~ → **#24**: confirmation dialogs protect the destructive actions they gate
+- ~~**#22**~~ + ~~**#21**~~ → ~~**#24**~~: confirmation dialogs protect the destructive actions they gate
 - ~~**#22**~~ + ~~**#21**~~ → **#32**: audit logging should capture the admin actions it tracks
 - **#23 → #26**: search/filtering builds on paginated lists
 - ~~**#44**~~ → **#45**: email change re-verification reuses the 8-digit code flow
