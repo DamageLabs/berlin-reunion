@@ -43,6 +43,7 @@ vi.mock("@/db/schema", () => ({
 vi.mock("drizzle-orm", () => ({
   eq: (col: unknown, val: unknown) => ({ col, val }),
   desc: (col: unknown) => ({ desc: col }),
+  asc: (col: unknown) => ({ asc: col }),
   and: (...args: unknown[]) => ({ and: args }),
   count: () => "count",
   aliasedTable: (table: unknown, alias: string) => ({ ...table as object, _alias: alias }),
@@ -80,7 +81,7 @@ function setupMockChain(logs: unknown[] = [], total = 0) {
     return { where: whereFnCount };
   });
 
-  return { firstLeftJoinFn, whereFnLogs, limitFn };
+  return { firstLeftJoinFn, whereFnLogs, orderByFn, limitFn };
 }
 
 // --- Tests ---
@@ -163,6 +164,42 @@ describe("GET /api/audit-logs", () => {
     const body = await res.json();
     expect(body.page).toBe(2);
     expect(body.limit).toBe(10);
+  });
+
+  it("sorts by date desc by default", async () => {
+    mockGetSession.mockResolvedValue(adminSession());
+    const { orderByFn } = setupMockChain([], 0);
+
+    const res = await GET(makeRequest());
+    expect(res.status).toBe(200);
+    expect(orderByFn).toHaveBeenCalledWith({ desc: "created_at" });
+  });
+
+  it("sorts by custom column and direction", async () => {
+    mockGetSession.mockResolvedValue(adminSession());
+    const { orderByFn } = setupMockChain([], 0);
+
+    const res = await GET(makeRequest("?sort=action&dir=asc"));
+    expect(res.status).toBe(200);
+    expect(orderByFn).toHaveBeenCalledWith({ asc: "action" });
+  });
+
+  it("falls back to date for invalid sort column", async () => {
+    mockGetSession.mockResolvedValue(adminSession());
+    const { orderByFn } = setupMockChain([], 0);
+
+    const res = await GET(makeRequest("?sort=invalid"));
+    expect(res.status).toBe(200);
+    expect(orderByFn).toHaveBeenCalledWith({ desc: "created_at" });
+  });
+
+  it("falls back to desc for invalid dir", async () => {
+    mockGetSession.mockResolvedValue(adminSession());
+    const { orderByFn } = setupMockChain([], 0);
+
+    const res = await GET(makeRequest("?sort=action&dir=bogus"));
+    expect(res.status).toBe(200);
+    expect(orderByFn).toHaveBeenCalledWith({ desc: "action" });
   });
 
   it("handles null detail gracefully", async () => {

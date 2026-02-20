@@ -42,7 +42,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | 13 | **#25** Dark mode toggle | CSS custom properties already exist. Just needs a toggle + persistence. |
 | 14 | **#41** React Email templates | Developer experience. Best done before adding more email templates but not user-facing urgent. |
 | 14a | **#59** Improve hello page content and layout | Two-column layout, profile photo, member count, quick action grid, events placeholder. Main post-login experience. |
-| 14b | **#60** Profile completion prompt on hello page | Nudge users to fill in missing platoon/location/years. Dismissible, localStorage-persisted. |
+| 14b | ~~**#60** Profile completion prompt on hello page~~ | ~~Nudge users to fill in missing platoon/location/years. Dismissible, localStorage-persisted.~~ |
 | 14c | **#61** Card treatment for hello page info section | Apply card styling (border, background, shadow) for visual polish. Quick win. |
 
 ## Tier 5 — Community Features

@@ -1,4 +1,4 @@
-import { aliasedTable, and, count, desc, eq } from "drizzle-orm";
+import { type AnyColumn, aliasedTable, and, asc, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
@@ -44,6 +44,18 @@ export async function GET(request: NextRequest) {
 	const actorUser = aliasedTable(user, "actor");
 	const targetUser = aliasedTable(user, "target");
 
+	const sortableColumns: Record<string, AnyColumn> = {
+		date: auditLog.createdAt,
+		action: auditLog.action,
+		actor: actorUser.name,
+		target: targetUser.name,
+	};
+
+	const sortParam = url.searchParams.get("sort") ?? "date";
+	const dirParam = url.searchParams.get("dir") ?? "desc";
+	const sortColumn = sortableColumns[sortParam] ?? sortableColumns.date;
+	const dirFn = dirParam === "asc" ? asc : desc;
+
 	const [logs, [total]] = await Promise.all([
 		db
 			.select({
@@ -61,7 +73,7 @@ export async function GET(request: NextRequest) {
 			.leftJoin(actorUser, eq(auditLog.actorId, actorUser.id))
 			.leftJoin(targetUser, eq(auditLog.targetId, targetUser.id))
 			.where(where)
-			.orderBy(desc(auditLog.createdAt))
+			.orderBy(dirFn(sortColumn))
 			.limit(limit)
 			.offset(page * limit),
 		db.select({ value: count() }).from(auditLog).where(where),

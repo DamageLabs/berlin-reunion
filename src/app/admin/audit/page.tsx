@@ -39,18 +39,22 @@ export default function AuditLogPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [actionFilter, setActionFilter] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [loading, setLoading] = useState(false);
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
     : "user";
 
-  const loadLogs = useCallback(async (p: number, action: string) => {
+  const loadLogs = useCallback(async (p: number, action: string, sort: string, dir: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: String(p),
         limit: String(PAGE_SIZE),
+        sort,
+        dir,
       });
       if (action) params.set("action", action);
 
@@ -68,9 +72,19 @@ export default function AuditLogPage() {
 
   useEffect(() => {
     if (session && (role === "admin" || role === "moderator")) {
-      loadLogs(page, actionFilter);
+      loadLogs(page, actionFilter, sortBy, sortDir);
     }
-  }, [session, role, page, actionFilter, loadLogs]);
+  }, [session, role, page, actionFilter, sortBy, sortDir, loadLogs]);
+
+  function handleSort(column: string) {
+    if (sortBy === column) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortDir("desc");
+    }
+    setPage(0);
+  }
 
   if (isPending) {
     return (
@@ -154,10 +168,30 @@ export default function AuditLogPage() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gold-dark/30">
-              <th className="pb-2 pr-4 font-medium text-cream/70">Date</th>
-              <th className="pb-2 pr-4 font-medium text-cream/70">Action</th>
-              <th className="pb-2 pr-4 font-medium text-cream/70">Actor</th>
-              <th className="pb-2 pr-4 font-medium text-cream/70">Target</th>
+              <th
+                className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                onClick={() => handleSort("date")}
+              >
+                Date {sortBy === "date" && (sortDir === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                onClick={() => handleSort("action")}
+              >
+                Action {sortBy === "action" && (sortDir === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                onClick={() => handleSort("actor")}
+              >
+                Actor {sortBy === "actor" && (sortDir === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                onClick={() => handleSort("target")}
+              >
+                Target {sortBy === "target" && (sortDir === "asc" ? "▲" : "▼")}
+              </th>
               <th className="pb-2 font-medium text-cream/70">Details</th>
             </tr>
           </thead>
