@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -32,6 +33,13 @@ export default function ProfilePage() {
   const [emailSuccess, setEmailSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Visibility state
+  const [isProfilePublic, setIsProfilePublic] = useState(false);
+  const [updatingVisibility, setUpdatingVisibility] = useState(false);
+  const [showPublicConfirm, setShowPublicConfirm] = useState(false);
+  const [visibilityError, setVisibilityError] = useState("");
+  const [visibilitySuccess, setVisibilitySuccess] = useState("");
+
   // Fetch profile data from DB so custom fields persist across reloads
   useEffect(() => {
     if (!session) return;
@@ -46,6 +54,7 @@ export default function ProfilePage() {
         setYearsServed(data.yearsServed ?? "");
         setCurrentImage(data.image ?? null);
         setCurrentEmail(data.email ?? "");
+        setIsProfilePublic(data.isProfilePublic ?? false);
         if (data.pendingEmail) {
           setNewEmail(data.pendingEmail);
           setEmailChangeStep("pending");
@@ -169,6 +178,39 @@ export default function ProfilePage() {
     setNewEmail("");
     setEmailError("");
     setEmailSuccess("");
+  }
+
+  function handleVisibilityToggle(makePublic: boolean) {
+    if (makePublic && !isProfilePublic) {
+      setShowPublicConfirm(true);
+      return;
+    }
+    updateVisibility(makePublic);
+  }
+
+  async function updateVisibility(makePublic: boolean) {
+    setVisibilityError("");
+    setVisibilitySuccess("");
+    setUpdatingVisibility(true);
+    try {
+      const res = await fetch(`/api/users/${session!.user.id}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic: makePublic }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsProfilePublic(data.isProfilePublic);
+        setVisibilitySuccess(data.message);
+        setShowPublicConfirm(false);
+      } else {
+        const body = await res.json();
+        setVisibilityError(body.error ?? "Failed to update visibility");
+      }
+    } catch {
+      setVisibilityError("Failed to update visibility");
+    }
+    setUpdatingVisibility(false);
   }
 
   async function handleSaveProfile(e: React.FormEvent) {
@@ -485,6 +527,104 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Profile Visibility section */}
+        <div className="border-t border-gold-dark/20 pt-6 space-y-3">
+          <h2 className="font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-gold">
+            Profile Visibility
+          </h2>
+
+          {visibilityError && (
+            <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
+              {visibilityError}
+            </div>
+          )}
+          {visibilitySuccess && (
+            <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
+              {visibilitySuccess}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-cream/70">
+              Current Status
+            </label>
+            <p className="mt-1">
+              {isProfilePublic ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-field-green/15 px-3 py-1 text-sm font-medium text-field-green">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                    <circle cx={12} cy={12} r={10} />
+                    <path d="M2 12h20" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                  Public
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/10 px-3 py-1 text-sm font-medium text-cream/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                    <rect width={18} height={11} x={3} y={11} rx={2} ry={2} />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Private
+                </span>
+              )}
+            </p>
+          </div>
+
+          <p className="text-sm text-cream/40">
+            {isProfilePublic
+              ? "Other members can view your profile in the member directory."
+              : "Only you and admins can see your profile."}
+          </p>
+
+          {isProfilePublic && (
+            <p>
+              <Link
+                href={`/users/${session.user.id}`}
+                className="text-sm font-medium text-gold hover:text-gold-light"
+              >
+                View your public profile &rarr;
+              </Link>
+            </p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleVisibilityToggle(false)}
+              disabled={updatingVisibility || !isProfilePublic}
+              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${
+                !isProfilePublic
+                  ? "bg-cream/10 text-cream/70"
+                  : "border border-gold-dark/40 text-cream/50 hover:border-gold/60 hover:text-cream hover:bg-gold-dark/10"
+              }`}
+            >
+              Private
+            </button>
+            <button
+              type="button"
+              onClick={() => handleVisibilityToggle(true)}
+              disabled={updatingVisibility || isProfilePublic}
+              className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${
+                isProfilePublic
+                  ? "bg-field-green/15 text-field-green"
+                  : "border border-gold-dark/40 text-cream/50 hover:border-field-green/60 hover:text-field-green hover:bg-field-green/5"
+              }`}
+            >
+              Public
+            </button>
+          </div>
+        </div>
+
+        {/* Make Public confirmation dialog */}
+        <ConfirmDialog
+          open={showPublicConfirm}
+          title="Make Profile Public?"
+          message="Making your profile public means other members can view your name, photo, platoon, years served, and location in the member directory. You can change this back to private at any time."
+          confirmLabel="Make Public"
+          onConfirm={() => updateVisibility(true)}
+          onCancel={() => setShowPublicConfirm(false)}
+        />
 
         <div className="flex items-center justify-center gap-4">
           <Link
