@@ -706,7 +706,7 @@ export default function AdminPage() {
 					</select>
 				</div>
 				<div className="overflow-x-auto">
-					<table className="w-full text-left text-sm">
+					<table className="min-w-[1000px] w-full text-left text-sm">
 						<thead>
 							<tr className="border-b border-gold-dark/30">
 								<th className="pb-2 pr-4 font-medium text-cream/70"></th>
@@ -766,7 +766,7 @@ export default function AdminPage() {
 									{usersSortBy === "status" &&
 										(usersSortDir === "asc" ? "▲" : "▼")}
 								</th>
-								<th className="pb-2 font-medium text-cream/70">Actions</th>
+								<th className="pb-2 font-medium text-cream/70 whitespace-nowrap">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -810,11 +810,11 @@ export default function AdminPage() {
 												{u.name}
 											</Link>
 										</td>
-										<td className="py-2 pr-4 text-cream/50">{u.email}</td>
+										<td className="py-2 pr-4 text-cream/50 max-w-[200px] truncate" title={u.email}>{u.email}</td>
 										<td className="py-2 pr-4 text-cream/80">
 											{u.username ?? "—"}
 										</td>
-										<td className="py-2 pr-4 text-cream/50">
+										<td className="py-2 pr-4 text-cream/50 max-w-[140px] truncate" title={u.location ?? ""}>
 											{u.location ?? "—"}
 										</td>
 										<td className="py-2 pr-4">
@@ -870,7 +870,7 @@ export default function AdminPage() {
 												<span className="text-field-green">Active</span>
 											)}
 										</td>
-										<td className="py-2">
+										<td className="py-2 whitespace-nowrap">
 											{u.id !== session.user.id &&
 												(ROLE_HIERARCHY[u.role ?? "user"] ?? 0) <
 													callerLevel && (
