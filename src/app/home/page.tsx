@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
+import Skeleton from "@/components/Skeleton";
 
 export default function HelloPage() {
   const router = useRouter();
@@ -60,8 +61,37 @@ export default function HelloPage() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <p className="text-sm text-cream/40">Loading...</p>
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="flex flex-col items-center gap-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-36" />
+          </div>
+          <div className="rounded-lg border border-gold-dark/20 p-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-14" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-14" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-14" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-14" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </div>
       </div>
     );
   }

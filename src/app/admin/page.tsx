@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import Skeleton from "@/components/Skeleton";
 import { useSession } from "@/lib/auth-client";
 
 interface UserRecord {
@@ -193,8 +194,81 @@ export default function AdminPage() {
 
 	if (isPending) {
 		return (
-			<div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-				<p className="text-sm text-cream/40">Loading...</p>
+			<div className="mx-auto max-w-4xl px-4 py-8">
+				{/* Header */}
+				<div className="mb-8 flex items-center justify-between">
+					<Skeleton className="h-7 w-48" />
+					<Skeleton className="h-4 w-20" />
+				</div>
+				{/* Send Invite form */}
+				<div className="mb-8">
+					<Skeleton className="mb-4 h-5 w-28" />
+					<div className="flex flex-wrap gap-3">
+						<Skeleton className="h-10 flex-1 min-w-[200px] rounded-md" />
+						<Skeleton className="h-10 w-24 rounded-md" />
+						<Skeleton className="h-10 w-28 rounded-md" />
+					</div>
+				</div>
+				{/* Users table */}
+				<div className="mb-8">
+					<Skeleton className="mb-4 h-5 w-24" />
+					<div className="overflow-x-auto">
+						<table className="w-full text-left text-sm">
+							<thead>
+								<tr className="border-b border-gold-dark/30">
+									{["w-7","w-16","w-16","w-20","w-20","w-12","w-16","w-14","w-16"].map((w, i) => (
+										<th key={i} className="pb-2 pr-4">
+											<Skeleton className={`h-4 ${w}`} />
+										</th>
+									))}
+								</tr>
+							</thead>
+							<tbody>
+								{Array.from({ length: 5 }).map((_, i) => (
+									<tr key={i} className="border-b border-gold-dark/15">
+										<td className="py-2 pr-4"><Skeleton className="h-7 w-7 rounded-full" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-24" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-36" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-8" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-12" /></td>
+										<td className="py-2"><Skeleton className="h-4 w-16" /></td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				{/* Invites table */}
+				<div>
+					<Skeleton className="mb-4 h-5 w-24" />
+					<div className="overflow-x-auto">
+						<table className="w-full text-left text-sm">
+							<thead>
+								<tr className="border-b border-gold-dark/30">
+									{["w-16","w-12","w-14","w-16","w-14"].map((w, i) => (
+										<th key={i} className="pb-2 pr-4">
+											<Skeleton className={`h-4 ${w}`} />
+										</th>
+									))}
+								</tr>
+							</thead>
+							<tbody>
+								{Array.from({ length: 3 }).map((_, i) => (
+									<tr key={i} className="border-b border-gold-dark/15">
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-36" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2"><Skeleton className="h-4 w-14" /></td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -663,11 +737,19 @@ export default function AdminPage() {
 						</thead>
 						<tbody>
 							{usersLoading ? (
-								<tr>
-									<td colSpan={9} className="py-8 text-center text-cream/40">
-										Loading...
-									</td>
-								</tr>
+								Array.from({ length: 5 }).map((_, i) => (
+									<tr key={i} className="border-b border-gold-dark/15">
+										<td className="py-2 pr-4"><Skeleton className="h-7 w-7 rounded-full" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-24" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-36" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-8" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-12" /></td>
+										<td className="py-2"><Skeleton className="h-4 w-16" /></td>
+									</tr>
+								))
 							) : (
 								users.map((u) => (
 									<tr key={u.id} className="border-b border-gold-dark/15">
@@ -870,11 +952,15 @@ export default function AdminPage() {
 						</thead>
 						<tbody>
 							{invitesLoading ? (
-								<tr>
-									<td colSpan={5} className="py-8 text-center text-cream/40">
-										Loading...
-									</td>
-								</tr>
+								Array.from({ length: 3 }).map((_, i) => (
+									<tr key={i} className="border-b border-gold-dark/15">
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-36" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-16" /></td>
+										<td className="py-2 pr-4"><Skeleton className="h-4 w-20" /></td>
+										<td className="py-2"><Skeleton className="h-4 w-14" /></td>
+									</tr>
+								))
 							) : (
 								invites.map((inv) => {
 									const isPending =

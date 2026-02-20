@@ -15,6 +15,12 @@
   --color-cream: #F5F0E1;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --animate-skeleton: skeleton 1.8s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 body {
