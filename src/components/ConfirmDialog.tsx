@@ -20,14 +20,16 @@ export default function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-navy-light">
-        <h3 className="mb-4 text-lg font-semibold">{title}</h3>
-        <p className="mb-6 text-sm text-silver">{message}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="w-full max-w-md rounded-lg border border-gold-dark/30 bg-charcoal p-6 shadow-lg">
+        <h3 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-gold">
+          {title}
+        </h3>
+        <p className="mb-6 text-sm text-cream/60">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="rounded-md border border-silver px-4 py-2 text-sm hover:bg-silver/10 dark:border-silver/30"
+            className="rounded-md border border-gold-dark/40 px-4 py-2 text-sm text-cream/60 hover:border-gold/60 hover:text-cream hover:bg-gold-dark/10"
           >
             Cancel
           </button>
@@ -36,7 +38,7 @@ export default function ConfirmDialog({
             className={
               danger
                 ? "rounded-md bg-crimson px-4 py-2 text-sm font-medium text-white hover:bg-crimson/90"
-                : "rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+                : "rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark"
             }
           >
             {confirmLabel}

@@ -74,14 +74,14 @@ export default function AuditLogPage() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-silver">Loading...</p>
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-sm text-cream/40">Loading...</p>
       </div>
     );
   }
 
   if (!session || (role !== "admin" && role !== "moderator")) {
-    router.push("/hello");
+    router.push("/home");
     return null;
   }
 
@@ -114,10 +114,12 @@ export default function AuditLogPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Audit Log</h1>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Audit Log
+        </h1>
         <Link
           href="/admin"
-          className="text-sm text-silver hover:text-gold"
+          className="text-sm text-gold-dark hover:text-gold"
         >
           Back to Dashboard
         </Link>
@@ -125,14 +127,14 @@ export default function AuditLogPage() {
 
       {/* Filters */}
       <div className="mb-4 flex items-center gap-3">
-        <label className="text-sm font-medium">Action:</label>
+        <label className="text-sm font-medium text-cream/70">Action:</label>
         <select
           value={actionFilter}
           onChange={(e) => {
             setActionFilter(e.target.value);
             setPage(0);
           }}
-          className="rounded-md border border-silver px-3 py-1.5 text-sm dark:border-silver/30 dark:bg-navy-light"
+          className="rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-1.5 text-sm text-cream focus:border-gold focus:outline-none"
         >
           <option value="">All</option>
           <option value="login.success">Login Success</option>
@@ -151,24 +153,24 @@ export default function AuditLogPage() {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-silver/30 dark:border-silver/20">
-              <th className="pb-2 pr-4 font-medium">Date</th>
-              <th className="pb-2 pr-4 font-medium">Action</th>
-              <th className="pb-2 pr-4 font-medium">Actor</th>
-              <th className="pb-2 pr-4 font-medium">Target</th>
-              <th className="pb-2 font-medium">Details</th>
+            <tr className="border-b border-gold-dark/30">
+              <th className="pb-2 pr-4 font-medium text-cream/70">Date</th>
+              <th className="pb-2 pr-4 font-medium text-cream/70">Action</th>
+              <th className="pb-2 pr-4 font-medium text-cream/70">Actor</th>
+              <th className="pb-2 pr-4 font-medium text-cream/70">Target</th>
+              <th className="pb-2 font-medium text-cream/70">Details</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-silver">
+                <td colSpan={5} className="py-8 text-center text-cream/40">
                   Loading...
                 </td>
               </tr>
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-silver">
+                <td colSpan={5} className="py-8 text-center text-cream/40">
                   No audit log entries found.
                 </td>
               </tr>
@@ -176,18 +178,18 @@ export default function AuditLogPage() {
               logs.map((entry) => (
                 <tr
                   key={entry.id}
-                  className="border-b border-silver/20 dark:border-silver/10"
+                  className="border-b border-gold-dark/15"
                 >
-                  <td className="py-2 pr-4 text-silver">
+                  <td className="py-2 pr-4 text-cream/50">
                     {new Date(entry.createdAt).toLocaleString()}
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2 pr-4 text-cream/80">
                     {ACTION_LABELS[entry.action] ?? entry.action}
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2 pr-4 text-cream/80">
                     {entry.actorName ?? entry.actorId}
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2 pr-4 text-cream/80">
                     {entry.targetEmail ??
                       (entry.targetId ? (
                         <Link
@@ -200,7 +202,7 @@ export default function AuditLogPage() {
                         "—"
                       ))}
                   </td>
-                  <td className="py-2 text-silver">
+                  <td className="py-2 text-cream/50">
                     {formatDetail(entry)}
                   </td>
                 </tr>
@@ -216,17 +218,17 @@ export default function AuditLogPage() {
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="rounded-md border border-silver px-3 py-1.5 text-sm disabled:opacity-50 dark:border-silver/30"
+            className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
           >
             Previous
           </button>
-          <span className="text-sm text-silver">
+          <span className="text-sm text-cream/50">
             Page {page + 1} of {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-md border border-silver px-3 py-1.5 text-sm disabled:opacity-50 dark:border-silver/30"
+            className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
           >
             Next
           </button>
