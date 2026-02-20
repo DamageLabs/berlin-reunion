@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession, authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface UserRecord {
@@ -35,8 +35,19 @@ export default function AdminPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
+  const PAGE_SIZE = 20;
+
   const [users, setUsers] = useState<UserRecord[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersPage, setUsersPage] = useState(0);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersSortBy, setUsersSortBy] = useState("name");
+  const [usersSortDir, setUsersSortDir] = useState<"asc" | "desc">("asc");
+
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [invitesTotal, setInvitesTotal] = useState(0);
+  const [invitesPage, setInvitesPage] = useState(0);
+  const [invitesLoading, setInvitesLoading] = useState(false);
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("user");
@@ -90,28 +101,53 @@ export default function AdminPage() {
     ? ((session.user as { role?: string }).role ?? "user")
     : "user";
 
-  const loadData = useCallback(async () => {
+  const loadUsers = useCallback(async (p: number, sort: string, dir: string) => {
+    setUsersLoading(true);
     try {
-      const [usersRes, invitesRes] = await Promise.all([
-        authClient.admin.listUsers({ query: { limit: 100 } }),
-        fetch("/api/invites").then((r) => r.json()),
-      ]);
-      if (usersRes.data) {
-        setUsers(usersRes.data.users as unknown as UserRecord[]);
-      }
-      if (Array.isArray(invitesRes)) {
-        setInvites(invitesRes);
+      const params = new URLSearchParams({
+        page: String(p),
+        limit: String(PAGE_SIZE),
+        sort,
+        dir,
+      });
+      const res = await fetch(`/api/admin/users?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users);
+        setUsersTotal(data.total);
       }
     } catch {
-      // silently fail — user will see empty lists
+      // silently fail
     }
+    setUsersLoading(false);
+  }, []);
+
+  const loadInvites = useCallback(async (p: number) => {
+    setInvitesLoading(true);
+    try {
+      const res = await fetch(`/api/invites?page=${p}&limit=${PAGE_SIZE}`);
+      if (res.ok) {
+        const data = await res.json();
+        setInvites(data.invites);
+        setInvitesTotal(data.total);
+      }
+    } catch {
+      // silently fail
+    }
+    setInvitesLoading(false);
   }, []);
 
   useEffect(() => {
     if (session && (role === "admin" || role === "moderator")) {
-      loadData();
+      loadUsers(usersPage, usersSortBy, usersSortDir);
     }
-  }, [session, role, loadData]);
+  }, [session, role, usersPage, usersSortBy, usersSortDir, loadUsers]);
+
+  useEffect(() => {
+    if (session && (role === "admin" || role === "moderator")) {
+      loadInvites(invitesPage);
+    }
+  }, [session, role, invitesPage, loadInvites]);
 
   if (isPending) {
     return (
@@ -132,6 +168,16 @@ export default function AdminPage() {
     admin: 2,
   };
   const callerLevel = ROLE_HIERARCHY[role] ?? 0;
+
+  function handleUsersSort(column: string) {
+    if (usersSortBy === column) {
+      setUsersSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setUsersSortBy(column);
+      setUsersSortDir("asc");
+    }
+    setUsersPage(0);
+  }
 
   async function handleBan() {
     if (!banTarget) return;
@@ -265,7 +311,7 @@ export default function AdminPage() {
       setInviteSuccess(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
       setInviteRole("user");
-      loadData();
+      loadInvites(invitesPage);
     } catch {
       setInviteError("Failed to send invite");
     }
@@ -333,6 +379,7 @@ export default function AdminPage() {
         return;
       }
       setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+      setUsersTotal((t) => t - 1);
       setDeleteSuccess(`User ${deleteTarget.name} has been deleted.`);
       setDeleteTarget(null);
     } catch {
@@ -412,7 +459,7 @@ export default function AdminPage() {
       {/* Users List */}
       <section className="mb-8">
         <h2 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
-          Users ({users.length})
+          Users ({usersTotal})
         </h2>
         {roleError && (
           <p className="mb-3 text-sm text-crimson">{roleError}</p>
@@ -440,18 +487,59 @@ export default function AdminPage() {
             <thead>
               <tr className="border-b border-gold-dark/30">
                 <th className="pb-2 pr-4 font-medium text-cream/70"></th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Name</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Email</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Username</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Location</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Role</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Verified</th>
-                <th className="pb-2 pr-4 font-medium text-cream/70">Status</th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("name")}
+                >
+                  Name {usersSortBy === "name" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("email")}
+                >
+                  Email {usersSortBy === "email" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("username")}
+                >
+                  Username {usersSortBy === "username" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("location")}
+                >
+                  Location {usersSortBy === "location" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("role")}
+                >
+                  Role {usersSortBy === "role" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("verified")}
+                >
+                  Verified {usersSortBy === "verified" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  className="pb-2 pr-4 font-medium text-cream/70 cursor-pointer select-none hover:text-cream"
+                  onClick={() => handleUsersSort("status")}
+                >
+                  Status {usersSortBy === "status" && (usersSortDir === "asc" ? "▲" : "▼")}
+                </th>
                 <th className="pb-2 font-medium text-cream/70">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {usersLoading ? (
+                <tr>
+                  <td colSpan={9} className="py-8 text-center text-cream/40">
+                    Loading...
+                  </td>
+                </tr>
+              ) : users.map((u) => (
                 <tr
                   key={u.id}
                   className="border-b border-gold-dark/15"
@@ -584,12 +672,33 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+        {Math.ceil(usersTotal / PAGE_SIZE) > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <button
+              onClick={() => setUsersPage((p) => Math.max(0, p - 1))}
+              disabled={usersPage === 0}
+              className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-cream/50">
+              Page {usersPage + 1} of {Math.ceil(usersTotal / PAGE_SIZE)}
+            </span>
+            <button
+              onClick={() => setUsersPage((p) => Math.min(Math.ceil(usersTotal / PAGE_SIZE) - 1, p + 1))}
+              disabled={usersPage >= Math.ceil(usersTotal / PAGE_SIZE) - 1}
+              className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Invites List */}
       <section>
         <h2 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
-          Invites ({invites.length})
+          Invites ({invitesTotal})
         </h2>
         {revokeError && (
           <p className="mb-3 text-sm text-crimson">{revokeError}</p>
@@ -606,7 +715,13 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {invites.map((inv) => {
+              {invitesLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-cream/40">
+                    Loading...
+                  </td>
+                </tr>
+              ) : invites.map((inv) => {
                 const isPending =
                   !inv.used && new Date(inv.expiresAt) >= new Date();
                 return (
@@ -647,6 +762,27 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+        {Math.ceil(invitesTotal / PAGE_SIZE) > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <button
+              onClick={() => setInvitesPage((p) => Math.max(0, p - 1))}
+              disabled={invitesPage === 0}
+              className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-cream/50">
+              Page {invitesPage + 1} of {Math.ceil(invitesTotal / PAGE_SIZE)}
+            </span>
+            <button
+              onClick={() => setInvitesPage((p) => Math.min(Math.ceil(invitesTotal / PAGE_SIZE) - 1, p + 1))}
+              disabled={invitesPage >= Math.ceil(invitesTotal / PAGE_SIZE) - 1}
+              className="rounded-md border border-gold-dark/40 px-3 py-1.5 text-sm text-cream/60 hover:border-gold/60 hover:text-cream disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Role Change Confirmation */}
