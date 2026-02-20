@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
 	return NextResponse.json({ token, email, role, expiresAt }, { status: 201 });
 }
 
-// GET /api/invites — List all invites (moderator+ only)
-export async function GET() {
+// GET /api/invites — List invites with pagination (moderator+ only)
+export async function GET(request: NextRequest) {
 	const session = await getSession();
 	if (!session) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -113,16 +113,31 @@ export async function GET() {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 
-	const invites = await db.query.inviteToken.findMany({
-		orderBy: (t, { desc }) => desc(t.createdAt),
-	});
+	const url = new URL(request.url);
+	const page = Math.max(0, Number(url.searchParams.get("page") ?? "0"));
+	const limit = Math.min(
+		100,
+		Math.max(1, Number(url.searchParams.get("limit") ?? "20")),
+	);
 
-	// Decrypt sensitive fields before returning
-	return NextResponse.json(
-		invites.map((inv) => ({
+	const [invites, [total]] = await Promise.all([
+		db
+			.select()
+			.from(inviteToken)
+			.orderBy(desc(inviteToken.createdAt))
+			.limit(limit)
+			.offset(page * limit),
+		db.select({ value: count() }).from(inviteToken),
+	]);
+
+	return NextResponse.json({
+		invites: invites.map((inv) => ({
 			...inv,
 			token: inv.token ? safeDecrypt(inv.token) : inv.token,
 			email: inv.email ? safeDecrypt(inv.email) : inv.email,
 		})),
-	);
+		total: total?.value ?? 0,
+		page,
+		limit,
+	});
 }
