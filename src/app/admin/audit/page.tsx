@@ -23,6 +23,10 @@ const ACTION_LABELS: Record<string, string> = {
   "user.unban": "Unban",
   "invite.create": "Invite Created",
   "invite.revoke": "Invite Revoked",
+  "email.change": "Email Change",
+  "password.reset": "Password Reset",
+  "login.success": "Login Success",
+  "login.failure": "Login Failure",
 };
 
 const PAGE_SIZE = 25;
@@ -63,7 +67,7 @@ export default function AuditLogPage() {
   }, []);
 
   useEffect(() => {
-    if (session && role === "admin") {
+    if (session && (role === "admin" || role === "moderator")) {
       loadLogs(page, actionFilter);
     }
   }, [session, role, page, actionFilter, loadLogs]);
@@ -76,7 +80,7 @@ export default function AuditLogPage() {
     );
   }
 
-  if (!session || role !== "admin") {
+  if (!session || (role !== "admin" && role !== "moderator")) {
     router.push("/hello");
     return null;
   }
@@ -96,6 +100,13 @@ export default function AuditLogPage() {
     }
     if (entry.action === "invite.create" || entry.action === "invite.revoke") {
       if (entry.detail.role) parts.push(`Role: ${entry.detail.role}`);
+    }
+    if (entry.action === "login.failure") {
+      if (entry.detail.reason) parts.push(`${entry.detail.reason}`);
+      if (entry.detail.username) parts.push(`User: ${entry.detail.username}`);
+    }
+    if (entry.action === "login.success" || entry.action === "login.failure") {
+      if (entry.detail.ipAddress) parts.push(`IP: ${entry.detail.ipAddress}`);
     }
     return parts.join(" · ");
   }
@@ -124,11 +135,15 @@ export default function AuditLogPage() {
           className="rounded-md border border-silver px-3 py-1.5 text-sm dark:border-silver/30 dark:bg-navy-light"
         >
           <option value="">All</option>
+          <option value="login.success">Login Success</option>
+          <option value="login.failure">Login Failure</option>
           <option value="role.change">Role Change</option>
           <option value="user.ban">Ban</option>
           <option value="user.unban">Unban</option>
           <option value="invite.create">Invite Created</option>
           <option value="invite.revoke">Invite Revoked</option>
+          <option value="email.change">Email Change</option>
+          <option value="password.reset">Password Reset</option>
         </select>
       </div>
 
