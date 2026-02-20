@@ -20,10 +20,10 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 | 6 | ~~**#24** Confirmation dialogs~~ | ~~Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value.~~ |
 | 7 | ~~**#32** Audit logging~~ | ~~With ban/revoke/role-change all live, an audit trail becomes important for accountability.~~ |
 | 7a | ~~**#45** Email change requires re-verification~~ | ~~Users who change their email must re-verify via the existing 8-digit code flow. Depends on #44.~~ |
-| 7b | **#54** Admin/moderator password reset for users | Admins/moderators can reset a user's password when self-service recovery isn't possible. Role hierarchy enforced. |
-| 7c | **#55** Log login attempts and status in audit logs | Capture successful and failed login events for security visibility. Extends audit logging (#32). |
-| 7d | **#56** Admin/moderator manual email verification | Admins/moderators can manually verify a user's email when the normal flow fails. |
-| 7e | **#57** Allow admins to delete users | Permanent user removal for spam, duplicates, or GDPR requests. Cascades sessions/accounts. Audit logged. |
+| 7b | ~~**#54** Admin/moderator password reset for users~~ | ~~Admins/moderators can reset a user's password when self-service recovery isn't possible. Role hierarchy enforced.~~ |
+| 7c | ~~**#55** Log login attempts and status in audit logs~~ | ~~Capture successful and failed login events for security visibility. Extends audit logging (#32).~~ |
+| 7d | ~~**#56** Admin/moderator manual email verification~~ | ~~Admins/moderators can manually verify a user's email when the normal flow fails.~~ |
+| 7e | ~~**#57** Allow admins to delete users~~ | ~~Permanent user removal for spam, duplicates, or GDPR requests. Cascades sessions/accounts. Audit logged.~~ |
 
 ## Tier 3 — Scalability & Data Management
 
@@ -55,7 +55,7 @@ Prioritized by security, core functionality, UX, and infrastructure readiness.
 
 | Order | Issue | Rationale |
 |-------|-------|-----------|
-| 15 | **#40** Encrypt sensitive fields | Important but complex (blind indexes, data migration). Better tackled once the schema is stable and all features are in. |
+| 15 | ~~**#40** Encrypt sensitive fields~~ | ~~Important but complex (blind indexes, data migration). Better tackled once the schema is stable and all features are in.~~ |
 | 16 | ~~**#31** Deployment configuration~~ | ~~Needed before go-live but not before feature work. Depends on knowing the final data persistence strategy.~~ |
 | 17 | **#33** E2E tests with Playwright | Best saved for last — features need to stabilize first or tests will churn constantly. Covers all the flows built above. |
 
