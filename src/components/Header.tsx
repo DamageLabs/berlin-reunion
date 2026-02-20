@@ -23,18 +23,21 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-navy-dark">
+    <header className="bg-charcoal border-b border-gold-dark/30">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-bold text-gold tracking-tight">
+        <Link
+          href="/"
+          className="font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-[0.15em] text-gold"
+        >
           Berlin Reunion
         </Link>
 
         <nav className="flex items-center gap-1">
           {isPending ? (
-            <span className="text-sm text-silver/50">...</span>
+            <span className="text-sm text-cream/40">...</span>
           ) : session ? (
             <>
-              <NavLink href="/hello" current={pathname}>
+              <NavLink href="/home" current={pathname}>
                 Home
               </NavLink>
               {(role === "admin" || role === "moderator") && (
@@ -42,7 +45,7 @@ export default function Header() {
                   Admin
                 </NavLink>
               )}
-              <span className="mx-2 hidden text-sm text-silver/40 sm:inline">
+              <span className="mx-2 hidden text-sm text-gold-dark/40 sm:inline">
                 |
               </span>
               <Link
@@ -58,13 +61,13 @@ export default function Header() {
                     className="rounded-full object-cover"
                   />
                 ) : null}
-                <span className="text-sm text-silver">
+                <span className="font-[family-name:var(--font-oswald)] text-sm font-light tracking-wide text-cream/70">
                   {session.user.name}
                 </span>
               </Link>
               <button
                 onClick={handleSignOut}
-                className="ml-2 rounded-md bg-navy px-3 py-1.5 text-sm font-medium text-gold hover:bg-navy-light"
+                className="ml-2 rounded-md border border-gold-dark/40 bg-charcoal-light px-3 py-1.5 font-[family-name:var(--font-oswald)] text-sm font-medium uppercase tracking-wider text-gold hover:border-gold/60 hover:bg-gold-dark/20"
               >
                 Sign Out
               </button>
@@ -93,10 +96,10 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`rounded-md px-3 py-1.5 font-[family-name:var(--font-oswald)] text-sm font-medium uppercase tracking-wider transition-colors ${
         active
-          ? "bg-navy text-gold"
-          : "text-silver hover:text-gold hover:bg-navy/50"
+          ? "bg-gold-dark/20 text-gold"
+          : "text-cream/60 hover:text-gold hover:bg-gold-dark/10"
       }`}
     >
       {children}

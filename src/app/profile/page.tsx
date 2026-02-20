@@ -73,7 +73,7 @@ export default function ProfilePage() {
   if (isPending) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <p className="text-sm text-silver">Loading...</p>
+        <p className="text-sm text-cream/40">Loading...</p>
       </div>
     );
   }
@@ -245,29 +245,31 @@ export default function ProfilePage() {
   const displayPhoto = photoPreview ?? currentImage;
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Edit Profile</h1>
-          <p className="mt-1 text-sm text-silver">{session.user.name}</p>
+          <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+            Edit Profile
+          </h1>
+          <p className="mt-1 text-sm text-cream/50">{session.user.name}</p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+          <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md bg-field-green/10 p-3 text-sm text-field-green dark:bg-field-green/20">
+          <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
             {success}
           </div>
         )}
 
         {/* Photo section */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium">Profile Photo</label>
+          <label className="block text-sm font-medium text-cream/70">Profile Photo</label>
           <div className="flex items-center gap-4">
-            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-silver/20">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gold-dark/20">
               {displayPhoto ? (
                 <img
                   src={displayPhoto}
@@ -275,7 +277,7 @@ export default function ProfilePage() {
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
-                <span className="flex h-full items-center justify-center text-2xl text-silver">
+                <span className="flex h-full items-center justify-center text-2xl text-gold-dark">
                   {session.user.name.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -286,9 +288,9 @@ export default function ProfilePage() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileSelect}
-                className="text-sm text-silver file:mr-2 file:rounded-md file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gold hover:file:bg-navy-dark dark:file:bg-gold dark:file:text-navy"
+                className="text-sm text-cream/50 file:mr-2 file:rounded-md file:border-0 file:bg-gold file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-charcoal hover:file:bg-gold-dark"
               />
-              <p className="text-xs text-silver">JPEG, PNG, or WebP. Max 2MB.</p>
+              <p className="text-xs text-cream/40">JPEG, PNG, or WebP. Max 2MB.</p>
             </div>
           </div>
           {photoPreview && (
@@ -296,7 +298,7 @@ export default function ProfilePage() {
               type="button"
               onClick={handleUploadPhoto}
               disabled={uploading}
-              className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+              className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
             >
               {uploading ? "Uploading..." : "Upload Photo"}
             </button>
@@ -306,7 +308,7 @@ export default function ProfilePage() {
         {/* Profile fields */}
         <form onSubmit={handleSaveProfile} className="space-y-3">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium">
+            <label htmlFor="name" className="block text-sm font-medium text-cream/70">
               Name
             </label>
             <input
@@ -315,11 +317,11 @@ export default function ProfilePage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your full name"
-              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="username" className="block text-sm font-medium">
+            <label htmlFor="username" className="block text-sm font-medium text-cream/70">
               Username
             </label>
             <input
@@ -328,18 +330,18 @@ export default function ProfilePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Your username"
-              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="platoon" className="block text-sm font-medium">
+            <label htmlFor="platoon" className="block text-sm font-medium text-cream/70">
               Platoon
             </label>
             <select
               id="platoon"
               value={platoon}
               onChange={(e) => setPlatoon(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             >
               <option value="">Select platoon...</option>
               <option value="Scouts">Scouts</option>
@@ -350,7 +352,7 @@ export default function ProfilePage() {
             </select>
           </div>
           <div>
-            <label htmlFor="yearsServed" className="block text-sm font-medium">
+            <label htmlFor="yearsServed" className="block text-sm font-medium text-cream/70">
               Years Served
             </label>
             <input
@@ -359,11 +361,11 @@ export default function ProfilePage() {
               value={yearsServed}
               onChange={(e) => setYearsServed(e.target.value)}
               placeholder="e.g. 1985-1989"
-              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="location" className="block text-sm font-medium">
+            <label htmlFor="location" className="block text-sm font-medium text-cream/70">
               Location
             </label>
             <input
@@ -372,29 +374,31 @@ export default function ProfilePage() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Berlin, Germany"
-              className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+            className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Profile"}
           </button>
         </form>
 
         {/* Email change section */}
-        <div className="border-t border-silver/20 pt-6 space-y-3">
-          <h2 className="text-lg font-semibold">Change Email</h2>
+        <div className="border-t border-gold-dark/20 pt-6 space-y-3">
+          <h2 className="font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-gold">
+            Change Email
+          </h2>
 
           {emailError && (
-            <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+            <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
               {emailError}
             </div>
           )}
           {emailSuccess && (
-            <div className="rounded-md bg-field-green/10 p-3 text-sm text-field-green dark:bg-field-green/20">
+            <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
               {emailSuccess}
             </div>
           )}
@@ -402,13 +406,13 @@ export default function ProfilePage() {
           {emailChangeStep === "idle" ? (
             <form onSubmit={handleInitiateEmailChange} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium">
+                <label className="block text-sm font-medium text-cream/70">
                   Current Email
                 </label>
-                <p className="mt-1 text-sm text-silver">{currentEmail}</p>
+                <p className="mt-1 text-sm text-cream/50">{currentEmail}</p>
               </div>
               <div>
-                <label htmlFor="newEmail" className="block text-sm font-medium">
+                <label htmlFor="newEmail" className="block text-sm font-medium text-cream/70">
                   New Email
                 </label>
                 <input
@@ -418,25 +422,25 @@ export default function ProfilePage() {
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="Enter new email address"
                   required
-                  className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+                  className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
                 />
               </div>
               <button
                 type="submit"
                 disabled={emailLoading || !newEmail.trim()}
-                className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+                className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
               >
                 {emailLoading ? "Sending..." : "Send Verification Code"}
               </button>
             </form>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-silver">
-                Code sent to <strong>{newEmail}</strong>
+              <p className="text-sm text-cream/50">
+                Code sent to <strong className="text-cream/80">{newEmail}</strong>
               </p>
               <form onSubmit={handleConfirmEmailChange} className="space-y-3">
                 <div>
-                  <label htmlFor="emailCode" className="block text-sm font-medium">
+                  <label htmlFor="emailCode" className="block text-sm font-medium text-cream/70">
                     Verification Code
                   </label>
                   <input
@@ -448,13 +452,13 @@ export default function ProfilePage() {
                     onChange={(e) => handleEmailCodeChange(e.target.value)}
                     placeholder="ABCD EFGH"
                     autoComplete="one-time-code"
-                    className="mt-1 block w-full rounded-md border border-silver px-3 py-3 text-center font-mono text-lg tracking-widest shadow-sm uppercase focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+                    className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-3 text-center font-mono text-lg tracking-widest text-cream uppercase shadow-sm focus:border-gold focus:outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={emailLoading || emailCode.replace(/\s/g, "").length < 8}
-                  className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+                  className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
                 >
                   {emailLoading ? "Confirming..." : "Confirm Email Change"}
                 </button>
@@ -464,7 +468,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleResendEmailCode}
                   disabled={resendCooldown > 0}
-                  className="text-sm font-medium underline disabled:opacity-50 disabled:no-underline"
+                  className="text-sm font-medium text-gold-dark underline hover:text-gold disabled:opacity-50 disabled:no-underline"
                 >
                   {resendCooldown > 0
                     ? `Resend code in ${resendCooldown}s`
@@ -473,7 +477,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={handleCancelEmailChange}
-                  className="text-sm font-medium text-silver underline"
+                  className="text-sm font-medium text-cream/50 underline hover:text-cream/70"
                 >
                   Cancel
                 </button>
@@ -484,8 +488,8 @@ export default function ProfilePage() {
 
         <p className="text-center">
           <Link
-            href="/hello"
-            className="text-sm font-medium underline text-silver"
+            href="/home"
+            className="text-sm font-medium text-gold-dark underline hover:text-gold"
           >
             Back to Home
           </Link>

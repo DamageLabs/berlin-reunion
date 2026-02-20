@@ -115,14 +115,14 @@ export default function AdminPage() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-silver">Loading...</p>
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-sm text-cream/40">Loading...</p>
       </div>
     );
   }
 
   if (!session || (role !== "admin" && role !== "moderator")) {
-    router.push("/hello");
+    router.push("/home");
     return null;
   }
 
@@ -343,11 +343,13 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Admin Dashboard
+        </h1>
         {role === "admin" && (
           <Link
             href="/admin/audit"
-            className="text-sm text-silver hover:text-gold"
+            className="text-sm text-gold-dark hover:text-gold"
           >
             Audit Log
           </Link>
@@ -356,7 +358,9 @@ export default function AdminPage() {
 
       {/* Send Invite */}
       <section className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold">Send Invite</h2>
+        <h2 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
+          Send Invite
+        </h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -370,12 +374,12 @@ export default function AdminPage() {
             placeholder="Email address"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            className="flex-1 min-w-[200px] rounded-md border border-silver px-3 py-2 text-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="flex-1 min-w-[200px] rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
           />
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value)}
-            className="rounded-md border border-silver px-3 py-2 text-sm dark:border-silver/30 dark:bg-navy-light"
+            className="rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
           >
             <option value="user">User</option>
             {role === "admin" && (
@@ -388,7 +392,7 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={inviteLoading}
-            className="rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+            className="rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
           >
             {inviteLoading ? "Sending..." : "Send Invite"}
           </button>
@@ -407,7 +411,7 @@ export default function AdminPage() {
 
       {/* Users List */}
       <section className="mb-8">
-        <h2 className="mb-4 text-lg font-semibold">
+        <h2 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
           Users ({users.length})
         </h2>
         {roleError && (
@@ -434,23 +438,23 @@ export default function AdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-silver/30 dark:border-silver/20">
-                <th className="pb-2 pr-4 font-medium"></th>
-                <th className="pb-2 pr-4 font-medium">Name</th>
-                <th className="pb-2 pr-4 font-medium">Email</th>
-                <th className="pb-2 pr-4 font-medium">Username</th>
-                <th className="pb-2 pr-4 font-medium">Location</th>
-                <th className="pb-2 pr-4 font-medium">Role</th>
-                <th className="pb-2 pr-4 font-medium">Verified</th>
-                <th className="pb-2 pr-4 font-medium">Status</th>
-                <th className="pb-2 font-medium">Actions</th>
+              <tr className="border-b border-gold-dark/30">
+                <th className="pb-2 pr-4 font-medium text-cream/70"></th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Name</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Email</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Username</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Location</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Role</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Verified</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Status</th>
+                <th className="pb-2 font-medium text-cream/70">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr
                   key={u.id}
-                  className="border-b border-silver/20 dark:border-silver/10"
+                  className="border-b border-gold-dark/15"
                 >
                   <td className="py-2 pr-4">
                     {u.image ? (
@@ -462,19 +466,19 @@ export default function AdminPage() {
                         className="rounded-full object-cover"
                       />
                     ) : (
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-silver/20 text-xs text-silver">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gold-dark/20 text-xs text-gold-dark">
                         {u.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </td>
                   <td className="py-2 pr-4">
-                    <Link href={`/users/${u.id}`} className="underline hover:text-gold">
+                    <Link href={`/users/${u.id}`} className="underline text-cream/80 hover:text-gold">
                       {u.name}
                     </Link>
                   </td>
-                  <td className="py-2 pr-4 text-silver">{u.email}</td>
-                  <td className="py-2 pr-4">{u.username ?? "—"}</td>
-                  <td className="py-2 pr-4 text-silver">{u.location ?? "—"}</td>
+                  <td className="py-2 pr-4 text-cream/50">{u.email}</td>
+                  <td className="py-2 pr-4 text-cream/80">{u.username ?? "—"}</td>
+                  <td className="py-2 pr-4 text-cream/50">{u.location ?? "—"}</td>
                   <td className="py-2 pr-4">
                     {role === "admin" ? (
                       <select
@@ -488,17 +492,17 @@ export default function AdminPage() {
                             newRole: e.target.value,
                           })
                         }
-                        className="rounded border border-silver/30 bg-transparent px-2 py-0.5 text-sm capitalize disabled:opacity-50 dark:border-silver/20"
+                        className="rounded border border-gold-dark/30 bg-transparent px-2 py-0.5 text-sm text-cream capitalize disabled:opacity-50"
                       >
                         <option value="user">User</option>
                         <option value="moderator">Moderator</option>
                         <option value="admin">Admin</option>
                       </select>
                     ) : (
-                      <span className="capitalize">{u.role ?? "user"}</span>
+                      <span className="capitalize text-cream/80">{u.role ?? "user"}</span>
                     )}
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className="py-2 pr-4 text-cream/80">
                     {u.emailVerified ? "Yes" : "No"}
                   </td>
                   <td className="py-2 pr-4">
@@ -508,7 +512,7 @@ export default function AdminPage() {
                       }>
                         Banned
                         {u.banExpires && (
-                          <span className="ml-1 text-xs text-silver">
+                          <span className="ml-1 text-xs text-cream/40">
                             until {new Date(u.banExpires).toLocaleDateString()}
                           </span>
                         )}
@@ -546,7 +550,7 @@ export default function AdminPage() {
                               setResetPasswordTarget({ id: u.id, name: u.name });
                               setResetPasswordError("");
                             }}
-                            className="rounded border border-silver px-2 py-0.5 text-xs text-silver hover:bg-silver/10 dark:border-silver/30"
+                            className="rounded border border-gold-dark/40 px-2 py-0.5 text-xs text-cream/50 hover:text-cream/80 hover:bg-gold-dark/10"
                           >
                             Reset PW
                           </button>
@@ -584,7 +588,7 @@ export default function AdminPage() {
 
       {/* Invites List */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold">
+        <h2 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
           Invites ({invites.length})
         </h2>
         {revokeError && (
@@ -593,12 +597,12 @@ export default function AdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-silver/30 dark:border-silver/20">
-                <th className="pb-2 pr-4 font-medium">Email</th>
-                <th className="pb-2 pr-4 font-medium">Role</th>
-                <th className="pb-2 pr-4 font-medium">Status</th>
-                <th className="pb-2 pr-4 font-medium">Expires</th>
-                <th className="pb-2 font-medium">Actions</th>
+              <tr className="border-b border-gold-dark/30">
+                <th className="pb-2 pr-4 font-medium text-cream/70">Email</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Role</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Status</th>
+                <th className="pb-2 pr-4 font-medium text-cream/70">Expires</th>
+                <th className="pb-2 font-medium text-cream/70">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -608,18 +612,18 @@ export default function AdminPage() {
                 return (
                   <tr
                     key={inv.id}
-                    className="border-b border-silver/20 dark:border-silver/10"
+                    className="border-b border-gold-dark/15"
                   >
-                    <td className="py-2 pr-4">{inv.email}</td>
-                    <td className="py-2 pr-4 capitalize">{inv.role}</td>
-                    <td className="py-2 pr-4">
+                    <td className="py-2 pr-4 text-cream/80">{inv.email}</td>
+                    <td className="py-2 pr-4 capitalize text-cream/80">{inv.role}</td>
+                    <td className="py-2 pr-4 text-cream/80">
                       {inv.used
                         ? "Used"
                         : new Date(inv.expiresAt) < new Date()
                           ? "Expired"
                           : "Pending"}
                     </td>
-                    <td className="py-2 pr-4 text-silver">
+                    <td className="py-2 pr-4 text-cream/50">
                       {new Date(inv.expiresAt).toLocaleDateString()}
                     </td>
                     <td className="py-2">
@@ -760,13 +764,13 @@ export default function AdminPage() {
 
       {/* Ban Modal */}
       {banTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-navy-light">
-            <h3 className="mb-4 text-lg font-semibold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-md rounded-lg border border-gold-dark/30 bg-charcoal p-6 shadow-lg">
+            <h3 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-gold">
               Ban {banTarget.name}?
             </h3>
             <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-cream/70">
                 Reason (optional)
               </label>
               <input
@@ -774,17 +778,17 @@ export default function AdminPage() {
                 value={banReason}
                 onChange={(e) => setBanReason(e.target.value)}
                 placeholder="e.g. Spam, harassment"
-                className="w-full rounded-md border border-silver px-3 py-2 text-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy"
+                className="w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
               />
             </div>
             <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1 block text-sm font-medium text-cream/70">
                 Duration
               </label>
               <select
                 value={banDuration}
                 onChange={(e) => setBanDuration(e.target.value)}
-                className="w-full rounded-md border border-silver px-3 py-2 text-sm dark:border-silver/30 dark:bg-navy"
+                className="w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
               >
                 <option value="permanent">Permanent</option>
                 <option value="1">1 day</option>
@@ -803,7 +807,7 @@ export default function AdminPage() {
                   setBanDuration("permanent");
                   setBanError("");
                 }}
-                className="rounded-md border border-silver px-4 py-2 text-sm hover:bg-silver/10 dark:border-silver/30"
+                className="rounded-md border border-gold-dark/40 px-4 py-2 text-sm text-cream/60 hover:border-gold/60 hover:text-cream hover:bg-gold-dark/10"
               >
                 Cancel
               </button>

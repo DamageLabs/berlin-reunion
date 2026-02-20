@@ -27,8 +27,10 @@ function ResetPasswordForm() {
     return (
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Invalid or Expired Link</h1>
-          <p className="mt-2 text-sm text-silver">
+          <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+            Invalid or Expired Link
+          </h1>
+          <p className="mt-2 text-sm text-cream/50">
             This password reset link is invalid or has expired.
           </p>
         </div>
@@ -74,8 +76,10 @@ function ResetPasswordForm() {
     return (
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Password Reset!</h1>
-          <p className="mt-2 text-sm text-silver">
+          <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+            Password Reset!
+          </h1>
+          <p className="mt-2 text-sm text-cream/50">
             Your password has been reset. Redirecting to login...
           </p>
         </div>
@@ -86,19 +90,21 @@ function ResetPasswordForm() {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Reset Password</h1>
-        <p className="mt-1 text-sm text-silver">Enter your new password</p>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Reset Password
+        </h1>
+        <p className="mt-1 text-sm text-cream/50">Enter your new password</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+          <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium">
+          <label htmlFor="newPassword" className="block text-sm font-medium text-cream/70">
             New Password
           </label>
           <input
@@ -108,14 +114,14 @@ function ResetPasswordForm() {
             minLength={8}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
           />
         </div>
 
         <div>
           <label
             htmlFor="confirmPassword"
-            className="block text-sm font-medium"
+            className="block text-sm font-medium text-cream/70"
           >
             Confirm Password
           </label>
@@ -126,14 +132,14 @@ function ResetPasswordForm() {
             minLength={8}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+          className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
         >
           {loading ? "Resetting..." : "Reset Password"}
         </button>
@@ -144,9 +150,9 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
       <Suspense
-        fallback={<p className="text-sm text-silver">Loading...</p>}
+        fallback={<p className="text-sm text-cream/40">Loading...</p>}
       >
         <ResetPasswordForm />
       </Suspense>

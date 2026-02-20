@@ -1,0 +1,414 @@
+/* Landing page poster styles */
+
+:root {
+  --poster-gold: #C8A84E;
+  --poster-gold-light: #E8D48B;
+  --poster-gold-dark: #8B6914;
+  --poster-black: #0A0A0A;
+  --poster-charcoal: #1A1A1A;
+  --poster-cream: #F5F0E1;
+}
+
+/* ── Wrapper (fills viewport below header) ── */
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 3.5rem);
+  background: var(--poster-black);
+  padding: 24px 16px;
+}
+
+/* ── Poster container ── */
+
+.poster {
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 800 / 1100;
+  position: relative;
+  background: var(--poster-charcoal);
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(200, 168, 78, 0.15);
+}
+
+/* Textured background */
+.poster::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(200, 168, 78, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 80%, rgba(74, 90, 43, 0.1) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+  z-index: 1;
+}
+
+/* Noise grain overlay */
+.poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Content layer ── */
+
+.content {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Top / bottom decorative borders ── */
+
+.topBorder {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, var(--poster-gold), transparent);
+  opacity: 0.8;
+}
+
+.bottomBorder {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, var(--poster-gold), transparent);
+  opacity: 0.8;
+  margin-top: 12px;
+}
+
+/* ── Corner decorations ── */
+
+.corner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  z-index: 4;
+}
+
+.cornerTl {
+  composes: corner;
+  top: 16px;
+  left: 16px;
+  border-top: 2px solid var(--poster-gold-dark);
+  border-left: 2px solid var(--poster-gold-dark);
+}
+
+.cornerTr {
+  composes: corner;
+  top: 16px;
+  right: 16px;
+  border-top: 2px solid var(--poster-gold-dark);
+  border-right: 2px solid var(--poster-gold-dark);
+}
+
+.cornerBl {
+  composes: corner;
+  bottom: 16px;
+  left: 16px;
+  border-bottom: 2px solid var(--poster-gold-dark);
+  border-left: 2px solid var(--poster-gold-dark);
+}
+
+.cornerBr {
+  composes: corner;
+  bottom: 16px;
+  right: 16px;
+  border-bottom: 2px solid var(--poster-gold-dark);
+  border-right: 2px solid var(--poster-gold-dark);
+}
+
+/* ── Header bar ── */
+
+.headerBar {
+  width: 90%;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.headerLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--poster-gold-dark), var(--poster-gold), var(--poster-gold-dark), transparent);
+}
+
+.headerText {
+  font-family: var(--font-oswald);
+  font-weight: 500;
+  font-size: clamp(10px, 1.6vw, 13px);
+  letter-spacing: 6px;
+  color: var(--poster-gold);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Unit designation ── */
+
+.unitBlock {
+  margin-top: 28px;
+  text-align: center;
+  animation: fadeIn 1s ease 0.2s both;
+}
+
+.unitPrefix {
+  font-family: var(--font-oswald);
+  font-size: clamp(10px, 1.75vw, 14px);
+  letter-spacing: 8px;
+  color: var(--poster-gold-dark);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.unitName {
+  font-family: var(--font-bebas);
+  font-size: clamp(32px, 6.5vw, 52px);
+  color: var(--poster-cream);
+  letter-spacing: 4px;
+  line-height: 1;
+  text-shadow: 0 2px 20px rgba(200, 168, 78, 0.2);
+}
+
+.unitNameAccent {
+  color: var(--poster-gold);
+}
+
+.unitSubtitle {
+  font-family: var(--font-oswald);
+  font-weight: 400;
+  font-size: clamp(11px, 1.9vw, 15px);
+  letter-spacing: 10px;
+  color: var(--poster-gold-dark);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ── Brandenburg Gate ── */
+
+.gateContainer {
+  margin-top: 30px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: clamp(140px, 24vw, 260px);
+  animation: fadeIn 1.2s ease 0.4s both;
+}
+
+.gateSvg {
+  width: min(620px, 80%);
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(200, 168, 78, 0.15));
+}
+
+.gateGlow {
+  position: absolute;
+  bottom: 0;
+  width: min(700px, 90%);
+  height: 120px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(200, 168, 78, 0.08) 0%, transparent 70%);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+/* ── Main title ── */
+
+.mainTitle {
+  margin-top: 20px;
+  text-align: center;
+  animation: fadeIn 1s ease 0.6s both;
+}
+
+.titleThe {
+  font-family: var(--font-source-serif);
+  font-style: italic;
+  font-size: clamp(16px, 2.75vw, 22px);
+  color: var(--poster-gold);
+  letter-spacing: 4px;
+  display: block;
+  margin-bottom: -4px;
+}
+
+.titleBerlin {
+  font-family: var(--font-bebas);
+  font-size: clamp(64px, 16.25vw, 130px);
+  color: var(--poster-cream);
+  letter-spacing: 14px;
+  line-height: 0.9;
+  text-shadow:
+    0 0 60px rgba(200, 168, 78, 0.15),
+    0 4px 0 var(--poster-gold-dark);
+  position: relative;
+}
+
+.titleBerlin::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--poster-gold), transparent);
+}
+
+.titleReunion {
+  font-family: var(--font-playfair);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(32px, 7vw, 56px);
+  color: var(--poster-gold);
+  letter-spacing: 8px;
+  line-height: 1.1;
+  text-shadow: 0 2px 15px rgba(200, 168, 78, 0.3);
+}
+
+.titleTour {
+  font-family: var(--font-oswald);
+  font-weight: 600;
+  font-size: clamp(18px, 3.5vw, 28px);
+  letter-spacing: 20px;
+  color: var(--poster-cream);
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+/* ── Year block ── */
+
+.yearBlock {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 1s ease 0.8s both;
+}
+
+.yearLine {
+  width: 80px;
+  height: 1px;
+  background: var(--poster-gold-dark);
+}
+
+.year {
+  font-family: var(--font-bebas);
+  font-size: clamp(44px, 9vw, 72px);
+  color: var(--poster-gold);
+  letter-spacing: 10px;
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(200, 168, 78, 0.2);
+}
+
+/* ── Stars row ── */
+
+.starsRow {
+  margin-top: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  animation: fadeIn 1s ease 1s both;
+}
+
+.star {
+  width: 12px;
+  height: 12px;
+  fill: var(--poster-gold);
+  opacity: 0.7;
+}
+
+.starCenter {
+  width: 18px;
+  height: 18px;
+  fill: var(--poster-gold);
+  opacity: 0.9;
+}
+
+/* ── Motto ── */
+
+.motto {
+  margin-top: 20px;
+  text-align: center;
+  animation: fadeIn 1s ease 1.2s both;
+}
+
+.mottoText {
+  font-family: var(--font-oswald);
+  font-weight: 500;
+  font-size: clamp(12px, 2vw, 16px);
+  letter-spacing: 6px;
+  color: var(--poster-gold-dark);
+  text-transform: uppercase;
+}
+
+.mottoLatin {
+  font-family: var(--font-playfair);
+  font-style: italic;
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--poster-gold);
+  letter-spacing: 3px;
+  margin-top: 4px;
+}
+
+/* ── Bottom section ── */
+
+.bottomSection {
+  margin-top: auto;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.bottomLine {
+  width: 90%;
+  margin: 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--poster-gold-dark), var(--poster-gold), var(--poster-gold-dark), transparent);
+}
+
+.bottomInfo {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 16px 0 8px;
+}
+
+.bottomItem {
+  text-align: center;
+}
+
+.bottomLabel {
+  font-family: var(--font-oswald);
+  font-size: clamp(8px, 1.25vw, 10px);
+  letter-spacing: 4px;
+  color: var(--poster-gold-dark);
+  text-transform: uppercase;
+}
+
+.bottomValue {
+  font-family: var(--font-oswald);
+  font-weight: 500;
+  font-size: clamp(10px, 1.75vw, 14px);
+  letter-spacing: 2px;
+  color: var(--poster-cream);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* ── Keyframes ── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.25; }
+}

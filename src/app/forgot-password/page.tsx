@@ -34,22 +34,24 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Forgot Password</h1>
-          <p className="mt-1 text-sm text-silver">
+          <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+            Forgot Password
+          </h1>
+          <p className="mt-1 text-sm text-cream/50">
             Enter your email to receive a reset link
           </p>
         </div>
 
         {submitted ? (
           <div className="space-y-4">
-            <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
+            <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
               If an account with that email exists, a password reset link has
               been sent. Check your inbox.
             </div>
-            <p className="text-center text-sm text-silver">
+            <p className="text-center text-sm">
               <a href="/login" className="text-gold hover:underline">
                 Back to login
               </a>
@@ -58,13 +60,13 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+              <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium">
+              <label htmlFor="email" className="block text-sm font-medium text-cream/70">
                 Email
               </label>
               <input
@@ -74,19 +76,19 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+                className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+              className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </button>
 
-            <p className="text-center text-sm text-silver">
+            <p className="text-center text-sm">
               <a href="/login" className="text-gold hover:underline">
                 Back to login
               </a>
