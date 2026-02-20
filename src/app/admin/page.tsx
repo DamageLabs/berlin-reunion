@@ -79,6 +79,13 @@ export default function AdminPage() {
   const [verifyError, setVerifyError] = useState("");
   const [verifySuccess, setVerifySuccess] = useState("");
 
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
+
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
     : "user";
@@ -312,6 +319,27 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleteError("");
+    setDeleteSuccess("");
+    try {
+      const res = await fetch(`/api/users/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setDeleteError(data.error ?? "Failed to delete user");
+        return;
+      }
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+      setDeleteSuccess(`User ${deleteTarget.name} has been deleted.`);
+      setDeleteTarget(null);
+    } catch {
+      setDeleteError("Failed to delete user");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
@@ -396,6 +424,12 @@ export default function AdminPage() {
         )}
         {verifySuccess && (
           <p className="mb-3 text-sm text-field-green">{verifySuccess}</p>
+        )}
+        {deleteError && (
+          <p className="mb-3 text-sm text-crimson">{deleteError}</p>
+        )}
+        {deleteSuccess && (
+          <p className="mb-3 text-sm text-field-green">{deleteSuccess}</p>
         )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -525,6 +559,17 @@ export default function AdminPage() {
                               className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
                             >
                               Verify
+                            </button>
+                          )}
+                          {role === "admin" && (
+                            <button
+                              onClick={() => {
+                                setDeleteTarget({ id: u.id, name: u.name });
+                                setDeleteError("");
+                              }}
+                              className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
+                            >
+                              Delete
                             </button>
                           )}
                         </div>
@@ -694,6 +739,23 @@ export default function AdminPage() {
           handleVerify();
         }}
         onCancel={() => setVerifyTarget(null)}
+      />
+
+      {/* Delete User Confirmation */}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete user?"
+        message={
+          deleteTarget
+            ? `Permanently delete ${deleteTarget.name}? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete User"
+        danger
+        onConfirm={() => {
+          handleDelete();
+        }}
+        onCancel={() => setDeleteTarget(null)}
       />
 
       {/* Ban Modal */}
