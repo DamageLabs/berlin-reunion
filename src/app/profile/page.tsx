@@ -486,14 +486,20 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <p className="text-center">
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            href="/sessions"
+            className="text-sm font-medium text-gold-dark underline hover:text-gold"
+          >
+            Manage Sessions
+          </Link>
           <Link
             href="/home"
             className="text-sm font-medium text-gold-dark underline hover:text-gold"
           >
             Back to Home
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
