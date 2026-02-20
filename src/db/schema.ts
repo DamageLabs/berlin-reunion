@@ -109,13 +109,11 @@ export const emailVerificationCode = sqliteTable("email_verification_code", {
 });
 
 // ─── Audit Log ─────────────────────────────────────────────────────────────
-// Immutable record of admin actions for accountability
+// Immutable record of admin and authentication events
 export const auditLog = sqliteTable("audit_log", {
 	id: text("id").primaryKey(),
 	action: text("action").notNull(),
-	actorId: text("actor_id")
-		.notNull()
-		.references(() => user.id),
+	actorId: text("actor_id").references(() => user.id),
 	targetId: text("target_id"),
 	targetEmail: text("target_email"),
 	detail: text("detail"),

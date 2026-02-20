@@ -96,12 +96,13 @@ describe("GET /api/audit-logs", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 403 when caller is moderator", async () => {
+  it("returns 200 when caller is moderator", async () => {
     mockGetSession.mockResolvedValue({
       user: { id: "mod-1", name: "Mod", role: "moderator" },
     });
+    setupMockChain([], 0);
     const res = await GET(makeRequest());
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
   });
 
   it("returns 403 when caller is regular user", async () => {

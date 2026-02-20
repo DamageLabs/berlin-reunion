@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 	}
 
 	const currentRole = (session.user as { role?: string }).role ?? "user";
-	if (currentRole !== "admin") {
+	if (currentRole !== "admin" && currentRole !== "moderator") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 

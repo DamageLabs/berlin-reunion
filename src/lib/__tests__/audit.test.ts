@@ -81,4 +81,28 @@ describe("logAuditEvent", () => {
 		expect(typeof call.id).toBe("string");
 		expect(call.createdAt).toBeInstanceOf(Date);
 	});
+
+	it("stores null actorId when not provided", async () => {
+		await logAuditEvent({
+			action: "login.failure",
+			targetEmail: "test@example.com",
+			detail: { reason: "Invalid email or password" },
+		});
+
+		const call = mockInsertValues.mock.calls[0][0];
+		expect(call.actorId).toBeNull();
+		expect(call.action).toBe("login.failure");
+	});
+
+	it("stores actorId for login.success", async () => {
+		await logAuditEvent({
+			action: "login.success",
+			actorId: "user-1",
+			detail: { ipAddress: "1.2.3.4", userAgent: "Mozilla" },
+		});
+
+		const call = mockInsertValues.mock.calls[0][0];
+		expect(call.actorId).toBe("user-1");
+		expect(call.action).toBe("login.success");
+	});
 });

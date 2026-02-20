@@ -8,6 +8,7 @@ import { APIError } from "better-call";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { logAuditEvent } from "@/lib/audit";
 import { hmacHash } from "@/lib/crypto";
 import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/email";
 import {
@@ -50,6 +51,38 @@ const signupGuard = createAuthMiddleware(async (ctx) => {
 				message: "Password must contain only printable characters",
 			});
 		}
+	}
+});
+
+const SIGN_IN_PATHS = ["/sign-in/email", "/sign-in/username"];
+
+const loginAuditHook = createAuthMiddleware(async (ctx) => {
+	if (!SIGN_IN_PATHS.includes(ctx.path)) return;
+
+	const ipAddress =
+		ctx.headers?.get("x-forwarded-for") ||
+		ctx.headers?.get("x-client-ip") ||
+		null;
+	const userAgent = ctx.headers?.get("user-agent") || null;
+
+	if (ctx.context.returned instanceof APIError) {
+		const body = ctx.body as Record<string, unknown> | undefined;
+		await logAuditEvent({
+			action: "login.failure",
+			targetEmail: (body?.email as string) ?? undefined,
+			detail: {
+				username: (body?.username as string) ?? undefined,
+				ipAddress,
+				userAgent,
+				reason: ctx.context.returned.body?.message ?? "Unknown error",
+			},
+		});
+	} else if (ctx.context.newSession) {
+		await logAuditEvent({
+			action: "login.success",
+			actorId: ctx.context.newSession.user.id,
+			detail: { ipAddress, userAgent },
+		});
 	}
 });
 
@@ -140,6 +173,7 @@ export const auth = betterAuth({
 
 	hooks: {
 		before: signupGuard,
+		after: loginAuditHook,
 	},
 });
 
