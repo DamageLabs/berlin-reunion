@@ -9,6 +9,7 @@ export type AuditAction =
 	| "invite.create"
 	| "invite.revoke"
 	| "email.change"
+	| "email.verify"
 	| "password.reset"
 	| "login.success"
 	| "login.failure";
