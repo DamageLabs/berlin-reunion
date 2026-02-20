@@ -95,9 +95,11 @@ function VerifyEmailContent() {
   if (!email) {
     return (
       <div className="w-full max-w-sm space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Email Verification</h1>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Email Verification
+        </h1>
         <p className="text-sm text-crimson">No email address provided.</p>
-        <Link href="/login" className="text-sm font-medium underline">
+        <Link href="/login" className="text-sm font-medium text-gold underline">
           Go to Sign In
         </Link>
       </div>
@@ -107,26 +109,28 @@ function VerifyEmailContent() {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Verify Your Email</h1>
-        <p className="mt-1 text-sm text-silver">
-          We sent an 8-digit code to <strong>{email}</strong>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Verify Your Email
+        </h1>
+        <p className="mt-1 text-sm text-cream/50">
+          We sent an 8-digit code to <strong className="text-cream/80">{email}</strong>
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+          <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md bg-field-green/10 p-3 text-sm text-field-green dark:bg-field-green/20">
+          <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
             {success}
           </div>
         )}
 
         <div>
-          <label htmlFor="code" className="block text-sm font-medium">
+          <label htmlFor="code" className="block text-sm font-medium text-cream/70">
             Verification Code
           </label>
           <input
@@ -138,14 +142,14 @@ function VerifyEmailContent() {
             onChange={(e) => handleCodeChange(e.target.value)}
             placeholder="ABCD EFGH"
             autoComplete="one-time-code"
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-3 text-center font-mono text-lg tracking-widest shadow-sm uppercase focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-3 text-center font-mono text-lg tracking-widest text-cream uppercase shadow-sm focus:border-gold focus:outline-none"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading || !!success || code.replace(/\s/g, "").length < 8}
-          className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+          className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
         >
           {loading ? "Verifying..." : "Verify Email"}
         </button>
@@ -156,7 +160,7 @@ function VerifyEmailContent() {
           type="button"
           onClick={handleResend}
           disabled={resendCooldown > 0}
-          className="text-sm font-medium underline disabled:opacity-50 disabled:no-underline"
+          className="text-sm font-medium text-gold-dark underline hover:text-gold disabled:opacity-50 disabled:no-underline"
         >
           {resendCooldown > 0
             ? `Resend code in ${resendCooldown}s`
@@ -169,9 +173,9 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
       <Suspense
-        fallback={<p className="text-sm text-silver">Loading...</p>}
+        fallback={<p className="text-sm text-cream/40">Loading...</p>}
       >
         <VerifyEmailContent />
       </Suspense>

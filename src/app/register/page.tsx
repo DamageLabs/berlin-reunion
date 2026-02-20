@@ -83,12 +83,14 @@ function RegisterForm() {
   if (!inviteToken) {
     return (
       <div className="w-full max-w-sm space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Invite Required</h1>
-        <p className="text-sm text-silver">
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Invite Required
+        </h1>
+        <p className="text-sm text-cream/50">
           Registration is by invitation only. Ask an existing member to send you
           an invite.
         </p>
-        <Link href="/login" className="text-sm font-medium underline">
+        <Link href="/login" className="text-sm font-medium text-gold underline">
           Sign In
         </Link>
       </div>
@@ -99,11 +101,13 @@ function RegisterForm() {
   if (inviteError) {
     return (
       <div className="w-full max-w-sm space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Invalid Invite</h1>
-        <p className="text-sm text-crimson dark:text-crimson">
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Invalid Invite
+        </h1>
+        <p className="text-sm text-crimson">
           {inviteError}
         </p>
-        <Link href="/login" className="text-sm font-medium underline">
+        <Link href="/login" className="text-sm font-medium text-gold underline">
           Sign In
         </Link>
       </div>
@@ -113,13 +117,15 @@ function RegisterForm() {
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Create Account</h1>
+        <h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
+          Create Account
+        </h1>
         {invite ? (
-          <p className="mt-1 text-sm text-silver">
-            You&apos;ve been invited as <strong>{invite.role}</strong>
+          <p className="mt-1 text-sm text-cream/50">
+            You&apos;ve been invited as <strong className="text-cream/80">{invite.role}</strong>
           </p>
         ) : (
-          <p className="mt-1 text-sm text-silver">
+          <p className="mt-1 text-sm text-cream/40">
             Validating invite...
           </p>
         )}
@@ -127,18 +133,18 @@ function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-crimson/10 p-3 text-sm text-crimson dark:bg-crimson/20">
+          <div className="rounded-md bg-crimson/15 p-3 text-sm text-crimson">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md bg-field-green/10 p-3 text-sm text-field-green dark:bg-field-green/20">
+          <div className="rounded-md bg-field-green/15 p-3 text-sm text-field-green">
             {success}
           </div>
         )}
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium">
+          <label htmlFor="name" className="block text-sm font-medium text-cream/70">
             Full Name
           </label>
           <input
@@ -147,12 +153,12 @@ function RegisterForm() {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
           />
         </div>
 
         <div>
-          <label htmlFor="username" className="block text-sm font-medium">
+          <label htmlFor="username" className="block text-sm font-medium text-cream/70">
             Username
           </label>
           <input
@@ -161,12 +167,12 @@ function RegisterForm() {
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">
+          <label htmlFor="email" className="block text-sm font-medium text-cream/70">
             Email
           </label>
           <input
@@ -176,12 +182,12 @@ function RegisterForm() {
             value={email}
             readOnly={!!invite}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none disabled:opacity-60 dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none disabled:opacity-60"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">
+          <label htmlFor="password" className="block text-sm font-medium text-cream/70">
             Password
           </label>
           <input
@@ -191,9 +197,9 @@ function RegisterForm() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-silver px-3 py-2 text-sm shadow-sm focus:border-gold focus:outline-none dark:border-silver/30 dark:bg-navy-light"
+            className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
           />
-          <p className="mt-1 text-xs text-silver">
+          <p className="mt-1 text-xs text-cream/40">
             At least 8 characters
           </p>
         </div>
@@ -201,15 +207,15 @@ function RegisterForm() {
         <button
           type="submit"
           disabled={loading || !!success}
-          className="w-full rounded-md bg-navy px-4 py-2 text-sm font-medium text-gold hover:bg-navy-dark disabled:opacity-50 dark:bg-gold dark:text-navy dark:hover:bg-gold-dark"
+          className="w-full rounded-md bg-gold px-4 py-2 text-sm font-medium text-charcoal hover:bg-gold-dark disabled:opacity-50"
         >
           {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-silver">
+      <p className="text-center text-sm text-cream/50">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium underline">
+        <Link href="/login" className="font-medium text-gold underline">
           Sign In
         </Link>
       </p>
@@ -219,9 +225,9 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
       <Suspense
-        fallback={<p className="text-sm text-silver">Loading...</p>}
+        fallback={<p className="text-sm text-cream/40">Loading...</p>}
       >
         <RegisterForm />
       </Suspense>
