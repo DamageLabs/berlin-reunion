@@ -200,7 +200,7 @@ export default function AdminPage() {
 
 	if (isPending) {
 		return (
-			<div className="mx-auto max-w-4xl px-4 py-8">
+			<div className="mx-auto max-w-6xl px-4 py-8">
 				{/* Header */}
 				<div className="mb-8 flex items-center justify-between">
 					<Skeleton className="h-7 w-48" />
@@ -562,7 +562,7 @@ export default function AdminPage() {
 	}
 
 	return (
-		<div className="mx-auto max-w-4xl px-4 py-8">
+		<div className="mx-auto max-w-6xl px-4 py-8">
 			<div className="mb-8 flex items-center justify-between">
 				<h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
 					Admin Dashboard
@@ -706,7 +706,7 @@ export default function AdminPage() {
 					</select>
 				</div>
 				<div className="overflow-x-auto">
-					<table className="min-w-[1000px] w-full text-left text-sm">
+					<table className="w-full text-left text-sm">
 						<thead>
 							<tr className="border-b border-gold-dark/30">
 								<th className="pb-2 pr-4 font-medium text-cream/70"></th>
