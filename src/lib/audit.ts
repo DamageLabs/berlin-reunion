@@ -9,11 +9,13 @@ export type AuditAction =
 	| "invite.create"
 	| "invite.revoke"
 	| "email.change"
-	| "password.reset";
+	| "password.reset"
+	| "login.success"
+	| "login.failure";
 
 export async function logAuditEvent(params: {
 	action: AuditAction;
-	actorId: string;
+	actorId?: string;
 	targetId?: string;
 	targetEmail?: string;
 	detail?: Record<string, unknown>;
@@ -21,7 +23,7 @@ export async function logAuditEvent(params: {
 	await db.insert(auditLog).values({
 		id: crypto.randomUUID(),
 		action: params.action,
-		actorId: params.actorId,
+		actorId: params.actorId ?? null,
 		targetId: params.targetId ?? null,
 		targetEmail: params.targetEmail ? encrypt(params.targetEmail) : null,
 		detail: params.detail ? JSON.stringify(params.detail) : null,
