@@ -115,6 +115,24 @@ describe("email", () => {
     });
   });
 
+  describe("sendAdminPasswordResetEmail", () => {
+    it("sends with correct subject and temp password in body", async () => {
+      const { sendAdminPasswordResetEmail } = await loadModule();
+      await sendAdminPasswordResetEmail({
+        email: "user@example.com",
+        tempPassword: "TempPass123!",
+      });
+
+      expect(mockSend).toHaveBeenCalledOnce();
+      const call = mockSend.mock.calls[0][0];
+      expect(call.from).toBe("test@example.com");
+      expect(call.to).toBe("user@example.com");
+      expect(call.subject).toContain("password has been reset");
+      expect(call.html).toContain("TempPass123!");
+      expect(call.html).toContain("administrator");
+    });
+  });
+
   describe("missing API key", () => {
     it("throws when RESEND_API_KEY is not set", async () => {
       delete process.env.RESEND_API_KEY;
