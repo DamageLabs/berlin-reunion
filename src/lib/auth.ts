@@ -67,7 +67,15 @@ export const auth = betterAuth({
 	},
 
 	user: {
-		additionalFields: BLIND_INDEX_ADDITIONAL_FIELDS.user,
+		additionalFields: {
+			...BLIND_INDEX_ADDITIONAL_FIELDS.user,
+			forcePasswordChange: {
+				type: "boolean" as const,
+				required: false,
+				defaultValue: false,
+				input: false as const,
+			},
+		},
 	},
 
 	emailAndPassword: {
