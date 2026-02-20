@@ -57,6 +57,13 @@
       "when": 1771545381146,
       "tag": "0007_fine_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1771552837784,
+      "tag": "0008_nice_nuke",
+      "breakpoints": true
     }
   ]
 }

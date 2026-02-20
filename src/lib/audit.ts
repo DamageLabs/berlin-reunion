@@ -8,7 +8,8 @@ export type AuditAction =
 	| "user.unban"
 	| "invite.create"
 	| "invite.revoke"
-	| "email.change";
+	| "email.change"
+	| "password.reset";
 
 export async function logAuditEvent(params: {
 	action: AuditAction;

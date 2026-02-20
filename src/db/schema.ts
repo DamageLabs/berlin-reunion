@@ -28,6 +28,10 @@ export const user = sqliteTable("user", {
 	// email change
 	pendingEmail: text("pending_email"),
 	pendingEmailHash: text("pending_email_hash"),
+	// password reset
+	forcePasswordChange: integer("force_password_change", {
+		mode: "boolean",
+	}).default(false),
 });
 
 // ─── Session ────────────────────────────────────────────────────────────────

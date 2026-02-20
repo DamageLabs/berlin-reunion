@@ -101,6 +101,27 @@ export async function sendResetPasswordEmail({
   });
 }
 
+export async function sendAdminPasswordResetEmail({
+  email,
+  tempPassword,
+}: {
+  email: string;
+  tempPassword: string;
+}) {
+  await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: "Your password has been reset — Berlin Reunion",
+    html: `
+      <h2>Your password has been reset</h2>
+      <p>An administrator has reset your password. Your temporary password is:</p>
+      <p style="font-family:monospace;font-size:24px;font-weight:bold;text-align:center;padding:16px 0">${tempPassword}</p>
+      <p>Please log in and change your password immediately. You will be required to set a new password on your next login.</p>
+      <p>If you did not expect this, please contact an administrator.</p>
+    `,
+  });
+}
+
 export async function sendInviteEmail({
   to,
   inviterName,

@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { changePassword } from "@/lib/auth-client";
+import { changePassword, useSession } from "@/lib/auth-client";
 
 export default function ChangePasswordPage() {
+  const { data: session } = useSession();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isForced = !!(session?.user as { forcePasswordChange?: boolean } | undefined)
+    ?.forcePasswordChange;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,7 +24,10 @@ export default function ChangePasswordPage() {
     await changePassword(
       { currentPassword, newPassword },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          if (isForced) {
+            await fetch("/api/clear-force-password-change", { method: "POST" });
+          }
           setSuccess("Password changed successfully.");
           setCurrentPassword("");
           setNewPassword("");
@@ -40,6 +47,12 @@ export default function ChangePasswordPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold">Change Password</h1>
         </div>
+
+        {isForced && (
+          <div className="rounded-md bg-gold/10 p-3 text-sm text-gold dark:bg-gold/20">
+            Your password was reset by an administrator. Please set a new password to continue.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -97,14 +110,16 @@ export default function ChangePasswordPage() {
           </button>
         </form>
 
-        <p className="text-center">
-          <Link
-            href="/hello"
-            className="text-sm font-medium underline text-silver"
-          >
-            Back to Home
-          </Link>
-        </p>
+        {!isForced && (
+          <p className="text-center">
+            <Link
+              href="/hello"
+              className="text-sm font-medium underline text-silver"
+            >
+              Back to Home
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );
