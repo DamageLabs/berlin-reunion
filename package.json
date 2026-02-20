@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed:users": "tsx scripts/seed-users.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit",

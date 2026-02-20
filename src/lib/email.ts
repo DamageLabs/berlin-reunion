@@ -139,13 +139,12 @@ export async function sendInviteEmail({
   await getResend().emails.send({
     from: FROM_EMAIL,
     to,
-    subject: "You're invited to Berlin Reunion!",
+    subject: "You're invited to the Berlin Reunion Tour - 2029!",
     html: `
-      <h2>You've been invited!</h2>
-      <p>${inviterName} has invited you to join Berlin Reunion as a <strong>${role}</strong>.</p>
+      <h2>You're Invited!</h2>
+      <p>${inviterName} has invited you to join the <strong>Berlin Reunion Tour of 2029</strong> as a <strong>${role}</strong>.</p>
       <p><a href="${registerUrl}">Accept Invitation</a></p>
-      <p>This invitation expires in 7 days.</p>
-      <p>If you weren't expecting this, you can ignore this email.</p>
+      <p>This link expires in 7 days. If you weren't expecting this invitation, you can safely ignore this email.</p>
     `,
   });
 }

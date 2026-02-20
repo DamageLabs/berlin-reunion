@@ -36,6 +36,8 @@ yarn-error.log*
 
 # database
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 data/*.db
 data/*.sqlite
@@ -45,6 +47,12 @@ data/*.sqlite
 .vscode/
 *.swp
 *.swo
+
+# claude
+.claude/
+
+# uploads
+public/uploads/
 
 # vercel
 .vercel
