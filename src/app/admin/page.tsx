@@ -62,6 +62,12 @@ export default function AdminPage() {
     id: string;
     name: string;
   } | null>(null);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [resetPasswordError, setResetPasswordError] = useState("");
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState("");
   const [revokeTarget, setRevokeTarget] = useState<{
     token: string;
     email: string;
@@ -155,6 +161,29 @@ export default function AdminPage() {
       setBanDuration("permanent");
     } catch {
       setBanError("Failed to ban user");
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!resetPasswordTarget) return;
+    setResetPasswordError("");
+    setResetPasswordSuccess("");
+    try {
+      const res = await fetch(
+        `/api/users/${resetPasswordTarget.id}/reset-password`,
+        { method: "POST" },
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        setResetPasswordError(data.error ?? "Failed to reset password");
+        return;
+      }
+      setResetPasswordSuccess(
+        `Password reset for ${resetPasswordTarget.name}. A temporary password has been emailed to them.`,
+      );
+      setResetPasswordTarget(null);
+    } catch {
+      setResetPasswordError("Failed to reset password");
     }
   }
 
@@ -325,6 +354,12 @@ export default function AdminPage() {
         {roleError && (
           <p className="mb-3 text-sm text-crimson">{roleError}</p>
         )}
+        {resetPasswordError && (
+          <p className="mb-3 text-sm text-crimson">{resetPasswordError}</p>
+        )}
+        {resetPasswordSuccess && (
+          <p className="mb-3 text-sm text-field-green">{resetPasswordSuccess}</p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -414,26 +449,37 @@ export default function AdminPage() {
                   <td className="py-2">
                     {u.id !== session.user.id &&
                       (ROLE_HIERARCHY[u.role ?? "user"] ?? 0) < callerLevel && (
-                        u.banned ? (
-                          <button
-                            onClick={() =>
-                              setUnbanTarget({ id: u.id, name: u.name })
-                            }
-                            className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
-                          >
-                            Unban
-                          </button>
-                        ) : (
+                        <div className="flex gap-2">
+                          {u.banned ? (
+                            <button
+                              onClick={() =>
+                                setUnbanTarget({ id: u.id, name: u.name })
+                              }
+                              className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
+                            >
+                              Unban
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setBanTarget(u);
+                                setBanError("");
+                              }}
+                              className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
+                            >
+                              Ban
+                            </button>
+                          )}
                           <button
                             onClick={() => {
-                              setBanTarget(u);
-                              setBanError("");
+                              setResetPasswordTarget({ id: u.id, name: u.name });
+                              setResetPasswordError("");
                             }}
-                            className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
+                            className="rounded border border-silver px-2 py-0.5 text-xs text-silver hover:bg-silver/10 dark:border-silver/30"
                           >
-                            Ban
+                            Reset PW
                           </button>
-                        )
+                        </div>
                       )}
                   </td>
                 </tr>
@@ -567,6 +613,23 @@ export default function AdminPage() {
           setRevokeTarget(null);
         }}
         onCancel={() => setRevokeTarget(null)}
+      />
+
+      {/* Reset Password Confirmation */}
+      <ConfirmDialog
+        open={resetPasswordTarget !== null}
+        title="Reset password?"
+        message={
+          resetPasswordTarget
+            ? `Reset ${resetPasswordTarget.name}\u2019s password? A temporary password will be emailed to them.`
+            : ""
+        }
+        confirmLabel="Reset Password"
+        danger
+        onConfirm={() => {
+          handleResetPassword();
+        }}
+        onCancel={() => setResetPasswordTarget(null)}
       />
 
       {/* Ban Modal */}
