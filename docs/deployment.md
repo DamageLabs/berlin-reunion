@@ -108,14 +108,24 @@ RESEND_API_KEY=re_your_production_key_here
 NEXT_PUBLIC_APP_URL=https://berlin-reunion.com
 BETTER_AUTH_SECRET=your-production-secret-here
 EMAIL_FROM=Berlin Reunion <noreply@berlin-reunion.com>
+ENCRYPTION_KEY=your-encryption-key-here
+BLIND_INDEX_KEY=your-blind-index-key-here
 EOF
 chmod 600 .env
 ```
 
-Generate a strong auth secret:
+Generate secrets (run each command separately, copy each output into `.env`):
 
 ```bash
-openssl rand -base64 32
+openssl rand -base64 32   # → BETTER_AUTH_SECRET
+openssl rand -base64 32   # → ENCRYPTION_KEY
+openssl rand -base64 32   # → BLIND_INDEX_KEY
+```
+
+After setting the keys, run the encryption migration to encrypt existing data:
+
+```bash
+npx tsx scripts/migrate-encryption.ts
 ```
 
 Build and initialize the database:
@@ -306,6 +316,8 @@ sudo systemctl reload nginx              # nginx (no downtime)
 ## Security Hardening Checklist
 
 - [ ] `BETTER_AUTH_SECRET` is a unique random value (not the dev default)
+- [ ] `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` are unique random values
+- [ ] Encryption migration has been run (`npx tsx scripts/migrate-encryption.ts`)
 - [ ] `.env` file is `chmod 600` and owned by the `berlin` user
 - [ ] SSH key-only auth (disable password auth in `/etc/ssh/sshd_config`)
 - [ ] `ufw` enabled: `sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable`
