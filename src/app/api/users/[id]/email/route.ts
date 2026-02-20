@@ -1,129 +1,138 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { and, desc, eq, gt, or } from "drizzle-orm";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { eq, and, or, gt, desc } from "drizzle-orm";
-import { user, emailVerificationCode } from "@/db/schema";
-import {
-  generateVerificationCode,
-  hashCode,
-  EXPIRY_MS,
-  RESEND_COOLDOWN_MS,
-} from "@/lib/verification-code";
+import { emailVerificationCode, user } from "@/db/schema";
+import { auth } from "@/lib/auth";
+import { encrypt, hmacHash, safeDecrypt } from "@/lib/crypto";
 import { sendEmailChangeVerificationEmail } from "@/lib/email";
+import {
+	EXPIRY_MS,
+	generateVerificationCode,
+	hashCode,
+	RESEND_COOLDOWN_MS,
+} from "@/lib/verification-code";
 
 type Params = { params: Promise<{ id: string }> };
 
 async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
+	return auth.api.getSession({ headers: await headers() });
 }
 
 // PATCH /api/users/[id]/email — Initiate email change
 export async function PATCH(request: NextRequest, { params }: Params) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+	const session = await getSession();
+	if (!session) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 
-  const { id: targetUserId } = await params;
+	const { id: targetUserId } = await params;
 
-  // Own user only — no admin override
-  if (session.user.id !== targetUserId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+	// Own user only — no admin override
+	if (session.user.id !== targetUserId) {
+		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+	}
 
-  const body = await request.json();
-  const { email: newEmail } = body as { email?: string };
+	const body = await request.json();
+	const { email: newEmail } = body as { email?: string };
 
-  if (!newEmail || typeof newEmail !== "string" || !newEmail.trim()) {
-    return NextResponse.json(
-      { error: "email is required" },
-      { status: 400 },
-    );
-  }
+	if (!newEmail || typeof newEmail !== "string" || !newEmail.trim()) {
+		return NextResponse.json({ error: "email is required" }, { status: 400 });
+	}
 
-  const trimmedEmail = newEmail.trim().toLowerCase();
+	const trimmedEmail = newEmail.trim().toLowerCase();
 
-  // Fetch current user
-  const [currentUser] = await db
-    .select({
-      email: user.email,
-      pendingEmail: user.pendingEmail,
-    })
-    .from(user)
-    .where(eq(user.id, targetUserId));
+	// Fetch current user (decrypt email fields)
+	const [currentUser] = await db
+		.select({
+			email: user.email,
+			pendingEmail: user.pendingEmail,
+		})
+		.from(user)
+		.where(eq(user.id, targetUserId));
 
-  if (!currentUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+	if (!currentUser) {
+		return NextResponse.json({ error: "User not found" }, { status: 404 });
+	}
 
-  if (currentUser.email === trimmedEmail) {
-    return NextResponse.json(
-      { error: "New email must be different from current email" },
-      { status: 400 },
-    );
-  }
+	const currentEmail = safeDecrypt(currentUser.email);
+	const currentPending = currentUser.pendingEmail
+		? safeDecrypt(currentUser.pendingEmail)
+		: null;
 
-  // Check uniqueness: not used by another user's email or pendingEmail
-  const existing = await db.query.user.findFirst({
-    where: and(
-      or(eq(user.email, trimmedEmail), eq(user.pendingEmail, trimmedEmail)),
-    ),
-  });
+	if (currentEmail === trimmedEmail) {
+		return NextResponse.json(
+			{ error: "New email must be different from current email" },
+			{ status: 400 },
+		);
+	}
 
-  if (existing && existing.id !== targetUserId) {
-    return NextResponse.json(
-      { error: "Email is already in use" },
-      { status: 409 },
-    );
-  }
+	// Check uniqueness via blind indexes
+	const emailHmac = hmacHash(trimmedEmail);
+	const existing = await db.query.user.findFirst({
+		where: and(
+			or(eq(user.emailHash, emailHmac), eq(user.pendingEmailHash, emailHmac)),
+		),
+	});
 
-  // Rate-limit: reject if code for this email was sent < 60s ago
-  const now = new Date();
-  const cooldownThreshold = new Date(now.getTime() - RESEND_COOLDOWN_MS);
-  const recentCode = await db.query.emailVerificationCode.findFirst({
-    where: and(
-      eq(emailVerificationCode.email, trimmedEmail),
-      gt(emailVerificationCode.createdAt, cooldownThreshold),
-    ),
-    orderBy: [desc(emailVerificationCode.createdAt)],
-  });
+	if (existing && existing.id !== targetUserId) {
+		return NextResponse.json(
+			{ error: "Email is already in use" },
+			{ status: 409 },
+		);
+	}
 
-  if (recentCode) {
-    return NextResponse.json(
-      { error: "Please wait before requesting a new code" },
-      { status: 429 },
-    );
-  }
+	// Rate-limit: reject if code for this email was sent < 60s ago
+	const now = new Date();
+	const cooldownThreshold = new Date(now.getTime() - RESEND_COOLDOWN_MS);
+	const recentCode = await db.query.emailVerificationCode.findFirst({
+		where: and(
+			eq(emailVerificationCode.emailHash, emailHmac),
+			gt(emailVerificationCode.createdAt, cooldownThreshold),
+		),
+		orderBy: [desc(emailVerificationCode.createdAt)],
+	});
 
-  // Write pendingEmail
-  await db
-    .update(user)
-    .set({ pendingEmail: trimmedEmail, updatedAt: new Date() })
-    .where(eq(user.id, targetUserId));
+	if (recentCode) {
+		return NextResponse.json(
+			{ error: "Please wait before requesting a new code" },
+			{ status: 429 },
+		);
+	}
 
-  // Clean up old codes for both old pending and new email
-  if (currentUser.pendingEmail && currentUser.pendingEmail !== trimmedEmail) {
-    await db
-      .delete(emailVerificationCode)
-      .where(eq(emailVerificationCode.email, currentUser.pendingEmail));
-  }
-  await db
-    .delete(emailVerificationCode)
-    .where(eq(emailVerificationCode.email, trimmedEmail));
+	// Write pendingEmail (encrypted + hash)
+	await db
+		.update(user)
+		.set({
+			pendingEmail: encrypt(trimmedEmail),
+			pendingEmailHash: hmacHash(trimmedEmail),
+			updatedAt: new Date(),
+		})
+		.where(eq(user.id, targetUserId));
 
-  // Generate code, insert, send
-  const code = generateVerificationCode();
-  await db.insert(emailVerificationCode).values({
-    id: crypto.randomUUID(),
-    email: trimmedEmail,
-    codeHash: hashCode(code),
-    attempts: 0,
-    createdAt: now,
-    expiresAt: new Date(now.getTime() + EXPIRY_MS),
-  });
+	// Clean up old codes for both old pending and new email
+	if (currentPending && currentPending !== trimmedEmail) {
+		await db
+			.delete(emailVerificationCode)
+			.where(eq(emailVerificationCode.emailHash, hmacHash(currentPending)));
+	}
+	await db
+		.delete(emailVerificationCode)
+		.where(eq(emailVerificationCode.emailHash, emailHmac));
 
-  await sendEmailChangeVerificationEmail({ email: trimmedEmail, code });
+	// Generate code, insert (encrypted), send
+	const code = generateVerificationCode();
+	await db.insert(emailVerificationCode).values({
+		id: crypto.randomUUID(),
+		email: encrypt(trimmedEmail),
+		emailHash: emailHmac,
+		codeHash: hashCode(code),
+		attempts: 0,
+		createdAt: now,
+		expiresAt: new Date(now.getTime() + EXPIRY_MS),
+	});
 
-  return NextResponse.json({ sent: true });
+	await sendEmailChangeVerificationEmail({ email: trimmedEmail, code });
+
+	return NextResponse.json({ sent: true });
 }
