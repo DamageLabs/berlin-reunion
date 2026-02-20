@@ -92,6 +92,12 @@ export default function AdminPage() {
 		token: string;
 		email: string;
 	} | null>(null);
+	const [resendTarget, setResendTarget] = useState<{
+		email: string;
+		role: string;
+	} | null>(null);
+	const [resendError, setResendError] = useState("");
+	const [resendSuccess, setResendSuccess] = useState("");
 	const [verifyTarget, setVerifyTarget] = useState<{
 		id: string;
 		name: string;
@@ -426,6 +432,34 @@ export default function AdminPage() {
 			);
 		} catch {
 			setRevokeError("Failed to revoke invite");
+		}
+	}
+
+	async function handleResend() {
+		if (!resendTarget) return;
+		setResendError("");
+		setResendSuccess("");
+		try {
+			const res = await fetch("/api/invites", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					email: resendTarget.email,
+					role: resendTarget.role,
+				}),
+			});
+			if (!res.ok) {
+				const data = await res.json();
+				setResendError(data.error ?? "Failed to resend invite");
+				setResendTarget(null);
+				return;
+			}
+			setResendSuccess(`Invite resent to ${resendTarget.email}`);
+			setResendTarget(null);
+			loadInvites(invitesPage);
+		} catch {
+			setResendError("Failed to resend invite");
+			setResendTarget(null);
 		}
 	}
 
@@ -939,6 +973,12 @@ export default function AdminPage() {
 				{revokeError && (
 					<p className="mb-3 text-sm text-crimson">{revokeError}</p>
 				)}
+				{resendError && (
+					<p className="mb-3 text-sm text-crimson">{resendError}</p>
+				)}
+				{resendSuccess && (
+					<p className="mb-3 text-sm text-field-green">{resendSuccess}</p>
+				)}
 				<div className="overflow-x-auto">
 					<table className="w-full text-left text-sm">
 						<thead>
@@ -995,6 +1035,20 @@ export default function AdminPage() {
 														Revoke
 													</button>
 												)}
+												{!inv.used &&
+													new Date(inv.expiresAt) < new Date() && (
+														<button
+															onClick={() =>
+																setResendTarget({
+																	email: inv.email,
+																	role: inv.role,
+																})
+															}
+															className="rounded border border-gold-dark/40 px-2 py-0.5 text-xs text-cream/70 hover:border-gold/60 hover:text-gold hover:bg-gold-dark/10"
+														>
+															Resend
+														</button>
+													)}
 											</td>
 										</tr>
 									);
@@ -1091,6 +1145,22 @@ export default function AdminPage() {
 					setRevokeTarget(null);
 				}}
 				onCancel={() => setRevokeTarget(null)}
+			/>
+
+			{/* Resend Invite Confirmation */}
+			<ConfirmDialog
+				open={resendTarget !== null}
+				title="Resend invite?"
+				message={
+					resendTarget
+						? `Resend invite to ${resendTarget.email}?`
+						: ""
+				}
+				confirmLabel="Resend"
+				onConfirm={() => {
+					handleResend();
+				}}
+				onCancel={() => setResendTarget(null)}
 			/>
 
 			{/* Reset Password Confirmation */}
