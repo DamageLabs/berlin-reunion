@@ -36,8 +36,13 @@ export async function GET(_request: NextRequest, { params }: Params) {
 	}
 
 	const isOwner = session.user.id === found.id;
-	const isAdmin =
-		((session.user as { role?: string }).role ?? "user") === "admin";
+	const callerRole = (session.user as { role?: string }).role ?? "user";
+	const isAdmin = callerRole === "admin";
+
+	// Private profiles return 404 for non-owner, non-admin callers
+	if (!found.isProfilePublic && !isOwner && !isAdmin) {
+		return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+	}
 
 	const response: Record<string, unknown> = {
 		id: found.id,
@@ -49,6 +54,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
 		yearsServed: found.yearsServed,
 		role: found.role,
 		createdAt: found.createdAt,
+		isProfilePublic: found.isProfilePublic ?? false,
 	};
 
 	if (isOwner || isAdmin) {
