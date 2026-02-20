@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit",
     "test:components": "vitest run --project components",
-    "email:dev": "email dev --dir src/emails --port 3060"
+    "email:dev": "email dev --dir src/emails --port 3060",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@react-email/components": "^1.0.8",
@@ -30,6 +31,7 @@
     "resend": "^6.9.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@react-email/preview-server": "^5.2.8",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",

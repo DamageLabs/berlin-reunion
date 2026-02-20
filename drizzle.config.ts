@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: "./data/berlin-reunion.db",
+    url: process.env.DRIZZLE_DATABASE_URL ?? "./data/berlin-reunion.db",
   },
 });

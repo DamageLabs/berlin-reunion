@@ -12,9 +12,12 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
+/.next-test/
 /out/
 
 # production
@@ -41,6 +44,7 @@ yarn-error.log*
 *.sqlite
 data/*.db
 data/*.sqlite
+data/test-invite-token.txt
 
 # IDE
 .idea/
