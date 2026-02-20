@@ -72,6 +72,12 @@ export default function AdminPage() {
     token: string;
     email: string;
   } | null>(null);
+  const [verifyTarget, setVerifyTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [verifyError, setVerifyError] = useState("");
+  const [verifySuccess, setVerifySuccess] = useState("");
 
   const role = session
     ? ((session.user as { role?: string }).role ?? "user")
@@ -281,6 +287,31 @@ export default function AdminPage() {
     }
   }
 
+  async function handleVerify() {
+    if (!verifyTarget) return;
+    setVerifyError("");
+    setVerifySuccess("");
+    try {
+      const res = await fetch(`/api/users/${verifyTarget.id}/verify`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setVerifyError(data.error ?? "Failed to verify user email");
+        return;
+      }
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === verifyTarget.id ? { ...u, emailVerified: true } : u,
+        ),
+      );
+      setVerifySuccess(`Email verified for ${verifyTarget.name}.`);
+      setVerifyTarget(null);
+    } catch {
+      setVerifyError("Failed to verify user email");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
@@ -359,6 +390,12 @@ export default function AdminPage() {
         )}
         {resetPasswordSuccess && (
           <p className="mb-3 text-sm text-field-green">{resetPasswordSuccess}</p>
+        )}
+        {verifyError && (
+          <p className="mb-3 text-sm text-crimson">{verifyError}</p>
+        )}
+        {verifySuccess && (
+          <p className="mb-3 text-sm text-field-green">{verifySuccess}</p>
         )}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -479,6 +516,17 @@ export default function AdminPage() {
                           >
                             Reset PW
                           </button>
+                          {!u.emailVerified && (
+                            <button
+                              onClick={() => {
+                                setVerifyTarget({ id: u.id, name: u.name });
+                                setVerifyError("");
+                              }}
+                              className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
+                            >
+                              Verify
+                            </button>
+                          )}
                         </div>
                       )}
                   </td>
@@ -630,6 +678,22 @@ export default function AdminPage() {
           handleResetPassword();
         }}
         onCancel={() => setResetPasswordTarget(null)}
+      />
+
+      {/* Verify Email Confirmation */}
+      <ConfirmDialog
+        open={verifyTarget !== null}
+        title="Verify email?"
+        message={
+          verifyTarget
+            ? `Manually verify ${verifyTarget.name}\u2019s email address?`
+            : ""
+        }
+        confirmLabel="Verify"
+        onConfirm={() => {
+          handleVerify();
+        }}
+        onCancel={() => setVerifyTarget(null)}
       />
 
       {/* Ban Modal */}
