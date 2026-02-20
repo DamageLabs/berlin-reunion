@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `force_password_change` integer DEFAULT false;
