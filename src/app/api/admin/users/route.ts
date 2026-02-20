@@ -1,4 +1,14 @@
-import { type AnyColumn, asc, count, desc } from "drizzle-orm";
+import {
+	type AnyColumn,
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	like,
+	or,
+	type SQL,
+} from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
@@ -44,6 +54,32 @@ export async function GET(request: NextRequest) {
 	const sortColumn = sortableColumns[sortParam] ?? sortableColumns.name;
 	const dirFn = dirParam === "desc" ? desc : asc;
 
+	// Search & filter params
+	const search = url.searchParams.get("search")?.trim();
+	const roleFilter = url.searchParams.get("role");
+	const verifiedFilter = url.searchParams.get("verified");
+	const statusFilter = url.searchParams.get("status");
+
+	const conditions: SQL[] = [];
+	if (search) {
+		const pattern = `%${search}%`;
+		const searchCondition = or(
+			like(user.name, pattern),
+			like(user.username, pattern),
+		);
+		if (searchCondition) conditions.push(searchCondition);
+	}
+	if (roleFilter && ["user", "moderator", "admin"].includes(roleFilter)) {
+		conditions.push(eq(user.role, roleFilter));
+	}
+	if (verifiedFilter === "true") conditions.push(eq(user.emailVerified, true));
+	if (verifiedFilter === "false")
+		conditions.push(eq(user.emailVerified, false));
+	if (statusFilter === "active") conditions.push(eq(user.banned, false));
+	if (statusFilter === "banned") conditions.push(eq(user.banned, true));
+
+	const where = conditions.length > 0 ? and(...conditions) : undefined;
+
 	const [users, [total]] = await Promise.all([
 		db
 			.select({
@@ -61,10 +97,11 @@ export async function GET(request: NextRequest) {
 				location: user.location,
 			})
 			.from(user)
+			.where(where)
 			.orderBy(dirFn(sortColumn))
 			.limit(limit)
 			.offset(page * limit),
-		db.select({ value: count() }).from(user),
+		db.select({ value: count() }).from(user).where(where),
 	]);
 
 	return NextResponse.json({
