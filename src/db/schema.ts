@@ -36,6 +36,10 @@ export const user = sqliteTable("user", {
 	forcePasswordChange: integer("force_password_change", {
 		mode: "boolean",
 	}).default(false),
+	// account lockout
+	failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+	lockedUntil: integer("locked_until", { mode: "timestamp" }),
+	lastFailedLoginAt: integer("last_failed_login_at", { mode: "timestamp" }),
 });
 
 // ─── Session ────────────────────────────────────────────────────────────────
