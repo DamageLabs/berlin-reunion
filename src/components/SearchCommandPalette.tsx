@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Member {
   id: string;
@@ -33,6 +34,7 @@ export default function SearchCommandPalette({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const trapRef = useFocusTrap(onClose);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults | null>(null);
@@ -54,8 +56,6 @@ export default function SearchCommandPalette({
       setQuery("");
       setResults(null);
       setActiveIndex(0);
-      // Focus input after render
-      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 
@@ -119,8 +119,6 @@ export default function SearchCommandPalette({
     } else if (e.key === "Enter") {
       e.preventDefault();
       handleSelect(activeIndex);
-    } else if (e.key === "Escape") {
-      onClose();
     }
   }
 
@@ -134,11 +132,19 @@ export default function SearchCommandPalette({
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[15vh]"
       style={{ animation: "fade-in 150ms ease-out" }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="search-palette-label"
     >
+      <span id="search-palette-label" className="sr-only">
+        Search members and events
+      </span>
       <div
+        ref={trapRef}
         className="w-full max-w-lg rounded-lg border border-gold-dark/30 bg-charcoal shadow-xl"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
+        tabIndex={-1}
       >
         {/* Search input */}
         <div className="flex items-center border-b border-gold-dark/20 px-4">
