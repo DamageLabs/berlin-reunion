@@ -599,7 +599,7 @@ export default function AdminPage() {
 				<h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
 					Admin Dashboard
 				</h1>
-				{role === "admin" && (
+				{(role === "admin" || role === "moderator") && (
 					<Link
 						href="/admin/audit"
 						className="text-sm text-gold-dark hover:text-gold"
