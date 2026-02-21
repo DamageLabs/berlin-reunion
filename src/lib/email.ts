@@ -6,6 +6,7 @@ import EmailChangeVerificationEmail from "@/emails/EmailChangeVerificationEmail"
 import ResetPasswordEmail from "@/emails/ResetPasswordEmail";
 import AdminPasswordResetEmail from "@/emails/AdminPasswordResetEmail";
 import InviteEmail from "@/emails/InviteEmail";
+import AccountDeletedEmail from "@/emails/AccountDeletedEmail";
 
 let _resend: Resend | null = null;
 
@@ -121,6 +122,22 @@ export async function sendInviteEmail({
     from: FROM_EMAIL,
     to,
     subject: "You're invited to the Berlin Reunion Tour - 2029!",
+    html,
+  });
+}
+
+export async function sendAccountDeletedEmail({
+  email,
+  name,
+}: {
+  email: string;
+  name: string;
+}) {
+  const html = await render(AccountDeletedEmail({ name }));
+  await getResend().emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: "Your Berlin Reunion account has been deleted",
     html,
   });
 }

@@ -162,10 +162,23 @@ export default function PrivacyPolicyPage() {
 					<div className="mt-1 h-px bg-gold-dark/30" />
 					<p className="mt-3">
 						Your account data is retained for as long as your account is active.
+						You may permanently delete your account at any time from your{" "}
+						<Link href="/profile" className="text-gold underline hover:text-gold-light">
+							profile settings
+						</Link>{" "}
+						using the &ldquo;Delete My Account&rdquo; option in the Danger Zone
+						section. Account deletion requires a two-step confirmation: typing
+						DELETE and entering your password.
+					</p>
+					<p className="mt-2">
 						When your account is deleted, your personal information (name,
 						email, profile photo, location, and service details) is permanently
-						removed from the database. Audit log entries related to your account
-						may be retained in anonymized form for security purposes.
+						removed from the database. Events you created are preserved as
+						community resources but your name is removed from them. All active
+						sessions are revoked, pending invitations you sent are deleted, and
+						a confirmation email is sent to your address. Audit log entries
+						related to your account may be retained in anonymized form for
+						security purposes.
 					</p>
 				</section>
 
@@ -195,8 +208,12 @@ export default function PrivacyPolicyPage() {
 						</li>
 					</ul>
 					<p className="mt-2">
-						To exercise any of these rights, contact a site administrator or use
-						the account management features in your profile settings.
+						You can delete your account directly from your{" "}
+						<Link href="/profile" className="text-gold underline hover:text-gold-light">
+							profile settings
+						</Link>
+						. For other requests, contact a site administrator or use the
+						account management features in your profile.
 					</p>
 				</section>
 

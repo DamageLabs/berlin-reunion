@@ -19,7 +19,7 @@ export interface EventDetail {
 	location: string | null;
 	recurrenceType: string | null;
 	recurrenceEndAt: string | null;
-	createdBy: string;
+	createdBy: string | null;
 	updatedBy: string | null;
 	createdAt: string;
 	updatedAt: string;

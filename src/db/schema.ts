@@ -139,9 +139,7 @@ export const event = sqliteTable("event", {
 	location: text("location"),
 	recurrenceType: text("recurrence_type"), // "daily"|"weekly"|"biweekly"|"monthly"|"yearly"|null
 	recurrenceEndAt: integer("recurrence_end_at", { mode: "timestamp" }),
-	createdBy: text("created_by")
-		.notNull()
-		.references(() => user.id),
+	createdBy: text("created_by").references(() => user.id),
 	updatedBy: text("updated_by").references(() => user.id),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
