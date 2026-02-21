@@ -146,7 +146,7 @@ export default function SearchCommandPalette({
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="h-5 w-5 shrink-0 text-cream/30"
+            className="h-5 w-5 shrink-0 text-gold/70"
           >
             <path
               fillRule="evenodd"
@@ -160,7 +160,7 @@ export default function SearchCommandPalette({
             value={query}
             onChange={handleInputChange}
             placeholder="Search members and events..."
-            className="w-full bg-charcoal px-3 py-3 text-sm text-cream placeholder:text-cream/30 focus:outline-none"
+            className="w-full bg-charcoal px-3 py-3 text-sm text-gold-light placeholder:text-gold/50 focus:outline-none"
           />
           {loading && (
             <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-gold-dark/30 border-t-gold/60" />
@@ -170,20 +170,20 @@ export default function SearchCommandPalette({
         {/* Results */}
         <div className="max-h-80 overflow-y-auto">
           {!hasQuery && (
-            <div className="px-4 py-8 text-center text-sm text-cream/30">
+            <div className="px-4 py-8 text-center text-sm text-gold/50">
               Type to search members and events...
             </div>
           )}
 
           {hasQuery && !loading && !hasResults && (
-            <div className="px-4 py-8 text-center text-sm text-cream/30">
+            <div className="px-4 py-8 text-center text-sm text-gold/50">
               No results found
             </div>
           )}
 
           {results && results.members.length > 0 && (
             <div className="px-2 py-2">
-              <div className="px-2 py-1.5 font-[family-name:var(--font-oswald)] text-xs uppercase tracking-wider text-gold/60">
+              <div className="px-2 py-1.5 font-[family-name:var(--font-oswald)] text-xs uppercase tracking-wider text-gold">
                 Members
               </div>
               {results.members.map((member, i) => {
@@ -206,22 +206,22 @@ export default function SearchCommandPalette({
                         className="h-8 w-8 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-dark/20 font-[family-name:var(--font-oswald)] text-xs text-gold/60">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-dark/20 font-[family-name:var(--font-oswald)] text-xs text-gold">
                         {member.name?.charAt(0).toUpperCase() ?? "?"}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-gold">
+                      <div className="truncate text-sm font-medium text-gold-light">
                         {member.name}
                       </div>
                       <div className="flex items-center gap-2 truncate text-xs">
                         {member.username && (
-                          <span className="text-cream/50">
+                          <span className="text-gold/70">
                             @{member.username}
                           </span>
                         )}
                         {member.location && (
-                          <span className="text-cream/40">
+                          <span className="text-gold/60">
                             {member.location}
                           </span>
                         )}
@@ -235,7 +235,7 @@ export default function SearchCommandPalette({
 
           {results && results.events.length > 0 && (
             <div className="px-2 py-2">
-              <div className="px-2 py-1.5 font-[family-name:var(--font-oswald)] text-xs uppercase tracking-wider text-gold/60">
+              <div className="px-2 py-1.5 font-[family-name:var(--font-oswald)] text-xs uppercase tracking-wider text-gold">
                 Events
               </div>
               {results.events.map((evt, i) => {
@@ -255,15 +255,15 @@ export default function SearchCommandPalette({
                     onMouseEnter={() => setActiveIndex(idx)}
                   >
                     <div className="flex h-8 w-8 shrink-0 flex-col items-center justify-center rounded bg-gold-dark/20 font-[family-name:var(--font-oswald)] leading-none">
-                      <span className="text-[10px] uppercase text-gold/60">
+                      <span className="text-[10px] uppercase text-gold/80">
                         {month}
                       </span>
-                      <span className="text-sm font-semibold text-gold">
+                      <span className="text-sm font-semibold text-gold-light">
                         {day}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 truncate text-sm text-cream/80">
+                      <div className="flex items-center gap-2 truncate text-sm text-gold-light">
                         {evt.title}
                         {evt.visibility === "private" && (
                           <svg
@@ -281,7 +281,7 @@ export default function SearchCommandPalette({
                         )}
                       </div>
                       {evt.location && (
-                        <div className="truncate text-xs text-cream/40">
+                        <div className="truncate text-xs text-gold/60">
                           {evt.location}
                         </div>
                       )}
@@ -294,7 +294,7 @@ export default function SearchCommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-3 border-t border-gold-dark/20 px-4 py-2 text-xs text-cream/25">
+        <div className="flex items-center gap-3 border-t border-gold-dark/20 px-4 py-2 text-xs text-gold/50">
           <span>
             <kbd className="rounded border border-gold-dark/20 px-1.5 py-0.5 font-mono text-[10px]">
               ↑↓
