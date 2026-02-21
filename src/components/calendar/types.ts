@@ -26,6 +26,17 @@ export interface EventDetail {
 	visibility: string;
 }
 
+export interface ICSEventData {
+	id: string;
+	title: string;
+	description?: string | null;
+	startAt: string;
+	durationMinutes: number;
+	location?: string | null;
+	recurrenceType?: string | null;
+	recurrenceEndAt?: string | null;
+}
+
 export interface EventFormData {
 	title: string;
 	description: string;
