@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import BanModal from "@/components/BanModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Skeleton from "@/components/Skeleton";
 import { useSession } from "@/lib/auth-client";
@@ -68,9 +69,6 @@ export default function AdminPage() {
 	const [roleError, setRoleError] = useState("");
 
 	const [banTarget, setBanTarget] = useState<UserRecord | null>(null);
-	const [banReason, setBanReason] = useState("");
-	const [banDuration, setBanDuration] = useState("permanent");
-	const [banError, setBanError] = useState("");
 	const [revokeError, setRevokeError] = useState("");
 
 	const [pendingRole, setPendingRole] = useState<{
@@ -330,46 +328,38 @@ export default function AdminPage() {
 		};
 	}
 
-	async function handleBan() {
+	async function handleBan(reason: string, duration: string) {
 		if (!banTarget) return;
-		setBanError("");
-		try {
-			const body: { reason?: string; expiresInDays?: number } = {};
-			if (banReason.trim()) body.reason = banReason.trim();
-			if (banDuration !== "permanent") body.expiresInDays = Number(banDuration);
+		const body: { reason?: string; expiresInDays?: number } = {};
+		if (reason.trim()) body.reason = reason.trim();
+		if (duration !== "permanent") body.expiresInDays = Number(duration);
 
-			const res = await fetch(`/api/users/${banTarget.id}/ban`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(body),
-			});
-			if (!res.ok) {
-				const data = await res.json();
-				setBanError(data.error ?? "Failed to ban user");
-				return;
-			}
-			const banExpires =
-				banDuration !== "permanent"
-					? new Date(Date.now() + Number(banDuration) * 86400000).toISOString()
-					: undefined;
-			setUsers((prev) =>
-				prev.map((u) =>
-					u.id === banTarget.id
-						? {
-								...u,
-								banned: true,
-								banReason: banReason.trim() || undefined,
-								banExpires,
-							}
-						: u,
-				),
-			);
-			setBanTarget(null);
-			setBanReason("");
-			setBanDuration("permanent");
-		} catch {
-			setBanError("Failed to ban user");
+		const res = await fetch(`/api/users/${banTarget.id}/ban`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+		});
+		if (!res.ok) {
+			const data = await res.json();
+			throw new Error(data.error ?? "Failed to ban user");
 		}
+		const banExpires =
+			duration !== "permanent"
+				? new Date(Date.now() + Number(duration) * 86400000).toISOString()
+				: undefined;
+		setUsers((prev) =>
+			prev.map((u) =>
+				u.id === banTarget.id
+					? {
+							...u,
+							banned: true,
+							banReason: reason.trim() || undefined,
+							banExpires,
+						}
+					: u,
+			),
+		);
+		setBanTarget(null);
 	}
 
 	async function handleResetPassword() {
@@ -931,10 +921,7 @@ export default function AdminPage() {
 															</button>
 														) : (
 															<button
-																onClick={() => {
-																	setBanTarget(u);
-																	setBanError("");
-																}}
+																onClick={() => setBanTarget(u)}
 																className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
 															>
 																Ban
@@ -1286,62 +1273,11 @@ export default function AdminPage() {
 
 			{/* Ban Modal */}
 			{banTarget && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-					<div className="w-full max-w-md rounded-lg border border-gold-dark/30 bg-charcoal p-6 shadow-lg">
-						<h3 className="mb-4 font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-gold">
-							Ban {banTarget.name}?
-						</h3>
-						<div className="mb-4">
-							<label className="mb-1 block text-sm font-medium text-cream/70">
-								Reason (optional)
-							</label>
-							<input
-								type="text"
-								value={banReason}
-								onChange={(e) => setBanReason(e.target.value)}
-								placeholder="e.g. Spam, harassment"
-								className="w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
-							/>
-						</div>
-						<div className="mb-4">
-							<label className="mb-1 block text-sm font-medium text-cream/70">
-								Duration
-							</label>
-							<select
-								value={banDuration}
-								onChange={(e) => setBanDuration(e.target.value)}
-								className="w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream focus:border-gold focus:outline-none"
-							>
-								<option value="permanent">Permanent</option>
-								<option value="1">1 day</option>
-								<option value="7">7 days</option>
-								<option value="30">30 days</option>
-							</select>
-						</div>
-						{banError && (
-							<p className="mb-3 text-sm text-crimson">{banError}</p>
-						)}
-						<div className="flex justify-end gap-3">
-							<button
-								onClick={() => {
-									setBanTarget(null);
-									setBanReason("");
-									setBanDuration("permanent");
-									setBanError("");
-								}}
-								className="rounded-md border border-gold-dark/40 px-4 py-2 text-sm text-cream/60 hover:border-gold/60 hover:text-cream hover:bg-gold-dark/10"
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleBan}
-								className="rounded-md bg-crimson px-4 py-2 text-sm font-medium text-white hover:bg-crimson/90"
-							>
-								Confirm Ban
-							</button>
-						</div>
-					</div>
-				</div>
+				<BanModal
+					userName={banTarget.name}
+					onConfirm={(reason, duration) => handleBan(reason, duration)}
+					onCancel={() => setBanTarget(null)}
+				/>
 			)}
 		</div>
 	);
