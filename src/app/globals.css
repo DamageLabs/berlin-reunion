@@ -23,6 +23,11 @@
   50% { opacity: 1; }
 }
 
+@keyframes toast-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 body {
   background: #1A1A1A;
   color: #F5F0E1;

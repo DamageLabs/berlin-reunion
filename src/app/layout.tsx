@@ -10,6 +10,8 @@ import {
 import Footer from "@/components/Footer";
 import ForcePasswordChangeGuard from "@/components/ForcePasswordChangeGuard";
 import Header from "@/components/Header";
+import ToastContainer from "@/components/ToastContainer";
+import { ToastProvider } from "@/components/ToastContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,10 +65,13 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} ${oswald.variable} ${playfair.variable} ${bebas.variable} ${sourceSerif.variable} antialiased`}
 			>
-				<Header />
-				<ForcePasswordChangeGuard />
-				{children}
-				<Footer />
+				<ToastProvider>
+					<Header />
+					<ForcePasswordChangeGuard />
+					{children}
+					<Footer />
+					<ToastContainer />
+				</ToastProvider>
 			</body>
 		</html>
 	);
