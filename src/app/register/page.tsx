@@ -231,6 +231,13 @@ function RegisterForm() {
 					className="text-gold-dark hover:text-gold underline"
 				>
 					Privacy Policy
+				</Link>{" "}
+				and{" "}
+				<Link
+					href="/terms"
+					className="text-gold-dark hover:text-gold underline"
+				>
+					Terms of Service
 				</Link>
 				.
 			</p>
