@@ -47,7 +47,7 @@ All original issues (#19–#61) are closed. Key completed features:
 | **#83** | Automated database backups (JSON export/restore) | Open |
 | **#84** | User surveys (admin/moderator created) | Open |
 | **#85** | Phone number on user profile (admin/moderator only) | Open |
-| **#86** | 502nd Infantry Regiment crest as favicon | Open — files generated locally, not committed |
+| ~~**#86**~~ | ~~502nd Infantry Regiment crest as favicon~~ | ~~Closed — shipped in PR #148~~ |
 | **#87** | Privacy policy page | Open |
 
 ---
@@ -128,7 +128,7 @@ These should be addressed before public launch.
 | **#82** | Google Maps integration for locations | Feature |
 | **#84** | User surveys | Feature |
 | **#85** | Phone number on profile | Feature |
-| **#86** | 502nd crest as favicon | Branding |
+| ~~**#86**~~ | ~~502nd crest as favicon~~ | ~~Branding — Closed~~ |
 | **#119** | Bio/about field on profiles | Profile |
 | **#121** | Social links on profiles | Profile |
 | **#123** | Event comments and discussion | Community |
@@ -155,7 +155,7 @@ These should be addressed before public launch.
 2. **#89 + #90** — 404 page + error boundary (user-facing errors)
 3. **#91 + #92** — Footer + mobile hamburger menu (layout completeness)
 4. **#93** — Content Security Policy headers
-5. **#86** — Favicon (branding, already generated)
+5. ~~**#86** — Favicon (branding, shipped in PR #148)~~
 6. **#95** — Health check endpoint
 7. **#94** — Email unsubscribe links
 8. **#96 + #97** — Accessibility basics (ARIA + skip link)
