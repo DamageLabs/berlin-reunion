@@ -13,6 +13,7 @@ interface UserProfile {
   location?: string;
   platoon?: string;
   yearsServed?: string;
+  phone?: string;
   role?: string;
   createdAt: string;
 }
@@ -123,6 +124,12 @@ export default function UserProfilePage({
               <dt className="text-cream/50">Location</dt>
               <dd className="text-cream/80">{profile.location || "—"}</dd>
             </div>
+            {profile.phone && (
+              <div className="flex justify-between">
+                <dt className="text-cream/50">Phone</dt>
+                <dd className="text-cream/80">{profile.phone}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-cream/50">Role</dt>
               <dd className="capitalize text-cream/80">{profile.role ?? "user"}</dd>

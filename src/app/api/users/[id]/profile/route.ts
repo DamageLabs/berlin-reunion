@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
+import { encrypt, hmacHash } from "@/lib/crypto";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -84,6 +85,32 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         );
       }
       updates[field] = (body[field] as string).trim();
+    }
+  }
+
+  // phone — optional, strip to digits (keep leading +), require 10+ digits or empty to clear
+  if ("phone" in body) {
+    if (typeof body.phone !== "string") {
+      return NextResponse.json(
+        { error: "phone must be a string" },
+        { status: 400 },
+      );
+    }
+    const raw = body.phone.trim();
+    if (raw === "") {
+      updates.phone = null;
+      updates.phoneHash = null;
+    } else {
+      const digits = raw.replace(/[^\d+]/g, "");
+      const digitCount = digits.replace(/\+/g, "").length;
+      if (digitCount < 10) {
+        return NextResponse.json(
+          { error: "Phone number must have at least 10 digits" },
+          { status: 400 },
+        );
+      }
+      updates.phone = encrypt(digits);
+      updates.phoneHash = hmacHash(digits);
     }
   }
 

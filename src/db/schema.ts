@@ -25,6 +25,8 @@ export const user = sqliteTable("user", {
 	location: text("location"),
 	platoon: text("platoon"),
 	yearsServed: text("years_served"),
+	phone: text("phone"),
+	phoneHash: text("phone_hash"),
 	// email change
 	pendingEmail: text("pending_email"),
 	pendingEmailHash: text("pending_email_hash"),

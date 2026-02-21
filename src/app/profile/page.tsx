@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [location, setLocation] = useState("");
   const [platoon, setPlatoon] = useState("");
   const [yearsServed, setYearsServed] = useState("");
+  const [phone, setPhone] = useState("");
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,6 +57,7 @@ export default function ProfilePage() {
         setLocation(data.location ?? "");
         setPlatoon(data.platoon ?? "");
         setYearsServed(data.yearsServed ?? "");
+        setPhone(data.phone ?? "");
         setCurrentImage(data.image ?? null);
         setCurrentEmail(data.email ?? "");
         setIsProfilePublic(data.isProfilePublic ?? false);
@@ -226,7 +228,7 @@ export default function ProfilePage() {
     const res = await fetch(`/api/users/${session!.user.id}/profile`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, username, location, platoon, yearsServed }),
+      body: JSON.stringify({ name, username, location, platoon, yearsServed, phone }),
     });
 
     if (res.ok) {
@@ -422,6 +424,25 @@ export default function ProfilePage() {
               placeholder="e.g. Where you live now"
               className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-cream/70">
+              Phone Number
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. +1 555 123 4567"
+              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
+            />
+            <p className="mt-1 flex items-center gap-1 text-xs text-cream/40">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3 shrink-0">
+                <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+              </svg>
+              Only visible to admins and moderators
+            </p>
           </div>
           <button
             type="submit"
