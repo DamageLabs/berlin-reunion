@@ -1,4 +1,10 @@
-# Technical Specification for Issue #40
+# Technical Specification for Issue #40 (COMPLETED)
+
+> **Status: Implemented and merged.** This spec is archived for reference. The encryption system described below is fully operational in production. See `src/lib/crypto.ts` and `src/lib/encrypted-adapter.ts`.
+
+---
+
+# Original Specification
 
 ## Issue Summary
 
