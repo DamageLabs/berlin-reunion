@@ -7,6 +7,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import EventDetailModal from "@/components/calendar/EventDetailModal";
 import EventFormModal from "@/components/calendar/EventFormModal";
+import ConfirmDeleteModal from "@/components/calendar/ConfirmDeleteModal";
 import type { ExpandedEvent, EventDetail, EventFormData } from "@/components/calendar/types";
 
 export default function CalendarPage() {
@@ -21,6 +22,7 @@ export default function CalendarPage() {
 	const [selectedEvent, setSelectedEvent] = useState<ExpandedEvent | null>(null);
 	const [showForm, setShowForm] = useState(false);
 	const [editEvent, setEditEvent] = useState<EventDetail | null>(null);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	const role = session
 		? ((session.user as { role?: string }).role ?? "user")
@@ -102,15 +104,20 @@ export default function CalendarPage() {
 		await fetchEvents();
 	}
 
-	async function handleDelete() {
+	function handleDelete() {
 		if (!selectedEvent) return;
-		if (!confirm("Are you sure you want to delete this event?")) return;
+		setShowDeleteConfirm(true);
+	}
+
+	async function confirmDelete() {
+		if (!selectedEvent) return;
 
 		const res = await fetch(`/api/events/${selectedEvent.eventId}`, {
 			method: "DELETE",
 		});
 
 		if (res.ok) {
+			setShowDeleteConfirm(false);
 			setSelectedEvent(null);
 			await fetchEvents();
 		}
@@ -187,6 +194,15 @@ export default function CalendarPage() {
 						setEditEvent(null);
 					}}
 					onSave={handleSave}
+				/>
+			)}
+
+			{showDeleteConfirm && selectedEvent && (
+				<ConfirmDeleteModal
+					eventTitle={selectedEvent.title}
+					isRecurring={selectedEvent.isRecurring}
+					onConfirm={confirmDelete}
+					onCancel={() => setShowDeleteConfirm(false)}
 				/>
 			)}
 		</div>
