@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ─── User ───────────────────────────────────────────────────────────────────
 // better-auth core + username plugin + admin plugin
@@ -165,6 +165,64 @@ export const backupConfig = sqliteTable("backup_config", {
 	weeklyRetention: integer("weekly_retention").notNull().default(4),
 	monthlyRetention: integer("monthly_retention").notNull().default(12),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+// ─── Survey ────────────────────────────────────────────────────────────────
+// Parent table for user surveys
+export const survey = sqliteTable("survey", {
+	id: text("id").primaryKey(),
+	title: text("title").notNull(),
+	description: text("description"),
+	status: text("status").notNull().default("draft"), // draft | active | closed
+	createdBy: text("created_by").references(() => user.id),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+// ─── Survey Question ───────────────────────────────────────────────────────
+// Questions belonging to a survey
+export const surveyQuestion = sqliteTable("survey_question", {
+	id: text("id").primaryKey(),
+	surveyId: text("survey_id")
+		.notNull()
+		.references(() => survey.id, { onDelete: "cascade" }),
+	type: text("type").notNull(), // text | textarea | single_choice | multiple_choice | rating
+	prompt: text("prompt").notNull(),
+	options: text("options"), // JSON array for choice types
+	required: integer("required", { mode: "boolean" }).default(true),
+	sortOrder: integer("sort_order").notNull(),
+});
+
+// ─── Survey Response ───────────────────────────────────────────────────────
+// One response per user per survey
+export const surveyResponse = sqliteTable(
+	"survey_response",
+	{
+		id: text("id").primaryKey(),
+		surveyId: text("survey_id")
+			.notNull()
+			.references(() => survey.id),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id),
+		submittedAt: integer("submitted_at", { mode: "timestamp" }).notNull(),
+	},
+	(table) => [
+		uniqueIndex("survey_response_unique").on(table.surveyId, table.userId),
+	],
+);
+
+// ─── Survey Answer ─────────────────────────────────────────────────────────
+// Individual answers within a response
+export const surveyAnswer = sqliteTable("survey_answer", {
+	id: text("id").primaryKey(),
+	responseId: text("response_id")
+		.notNull()
+		.references(() => surveyResponse.id, { onDelete: "cascade" }),
+	questionId: text("question_id")
+		.notNull()
+		.references(() => surveyQuestion.id),
+	value: text("value"),
 });
 
 // ─── Invite Token ───────────────────────────────────────────────────────────
