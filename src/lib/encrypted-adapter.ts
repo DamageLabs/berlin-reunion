@@ -15,6 +15,7 @@ const ENCRYPTED_FIELDS: Record<
 	user: {
 		email: { blindIndex: "emailHash" },
 		pendingEmail: { blindIndex: "pendingEmailHash" },
+		phone: { blindIndex: "phoneHash" },
 	},
 	session: {
 		token: { blindIndex: "tokenHash" },
@@ -222,6 +223,17 @@ export const BLIND_INDEX_ADDITIONAL_FIELDS = {
 			input: false,
 		},
 		pendingEmailHash: {
+			type: "string",
+			required: false,
+			input: false,
+			returned: false,
+		},
+		phone: {
+			type: "string",
+			required: false,
+			input: false,
+		},
+		phoneHash: {
 			type: "string",
 			required: false,
 			input: false,

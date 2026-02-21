@@ -27,6 +27,18 @@ All original issues (#19–#61) are closed. Key completed features:
 - Event visibility — public/private
 - Styled delete confirmation modal (#80)
 - Member directory with search
+- Terms of Service page (#88)
+- Custom 404 not-found page (#89)
+- Error boundary for client/server errors (#90)
+- Site footer with links (#91)
+- Account lockout after failed login attempts (#99)
+- Notification toasts for user actions (#101)
+- Account self-deletion for users (#110)
+- Calendar export — iCal/ICS download (#111)
+- Focus trap in modal dialogs (#114)
+- Global search / command palette (#117)
+- Sticky header on scroll (#118)
+- Privacy policy page (#87)
 
 ---
 
@@ -48,7 +60,8 @@ All original issues (#19–#61) are closed. Key completed features:
 | **#84** | User surveys (admin/moderator created) | Open |
 | **#85** | Phone number on user profile (admin/moderator only) | Open |
 | ~~**#86**~~ | ~~502nd Infantry Regiment crest as favicon~~ | ~~Closed — shipped in PR #148~~ |
-| **#87** | Privacy policy page | Open |
+| ~~**#88**~~ | ~~Terms of Service page~~ | ~~Closed~~ |
+| ~~**#87**~~ | ~~Privacy policy page~~ | ~~Closed~~ |
 
 ---
 
@@ -58,11 +71,11 @@ These should be addressed before public launch.
 
 | Issue | Title | Category |
 |-------|-------|----------|
-| **#87** | Privacy policy page | Legal |
-| **#88** | Terms of Service page | Legal |
-| **#89** | Custom 404 not-found page | UX |
-| **#90** | Error boundary for client/server errors | Reliability |
-| **#91** | Site footer with links | UX |
+| ~~**#87**~~ | ~~Privacy policy page~~ | ~~Legal — Closed~~ |
+| ~~**#88**~~ | ~~Terms of Service page~~ | ~~Legal — Closed~~ |
+| ~~**#89**~~ | ~~Custom 404 not-found page~~ | ~~UX — Closed~~ |
+| ~~**#90**~~ | ~~Error boundary for client/server errors~~ | ~~Reliability — Closed~~ |
+| ~~**#91**~~ | ~~Site footer with links~~ | ~~UX — Closed~~ |
 | **#92** | Mobile hamburger menu for header | UX |
 | **#93** | Content Security Policy headers | Security |
 | **#94** | Unsubscribe links in emails | Legal/Email |
@@ -77,18 +90,18 @@ These should be addressed before public launch.
 | Issue | Title | Category |
 |-------|-------|----------|
 | **#98** | Two-factor authentication for admin accounts | Security |
-| **#99** | Account lockout after failed login attempts | Security |
+| ~~**#99**~~ | ~~Account lockout after failed login attempts~~ | ~~Security — Closed~~ |
 | **#100** | Event RSVP and attendance tracking | Feature |
-| **#101** | Notification toasts for user actions | UX |
+| ~~**#101**~~ | ~~Notification toasts for user actions~~ | ~~UX — Closed~~ |
 | **#102** | Client-side form validation | UX |
 | **#103** | Environment variable validation at startup | Reliability |
 | **#104** | Structured logging | Infrastructure |
 | **#105** | Email bounce/spam webhook handling (Resend) | Email |
 | **#106** | Welcome email after registration | Email |
 | **#108** | Search and filter in audit log viewer | Admin |
-| **#110** | Account self-deletion for users | Privacy |
+| ~~**#110**~~ | ~~Account self-deletion for users~~ | ~~Privacy — Closed~~ |
 | **#112** | Automated ban expiry | Admin |
-| **#114** | Focus trap in modal dialogs | Accessibility |
+| ~~**#114**~~ | ~~Focus trap in modal dialogs~~ | ~~Accessibility — Closed~~ |
 | **#116** | Background job system for scheduled tasks | Infrastructure |
 
 ---
@@ -100,11 +113,11 @@ These should be addressed before public launch.
 | **#83** | Automated database backups | Infrastructure |
 | **#107** | Event reminder emails | Email |
 | **#109** | Event categories and tags | Calendar |
-| **#111** | Calendar export (iCal/ICS) | Calendar |
+| ~~**#111**~~ | ~~Calendar export (iCal/ICS)~~ | ~~Calendar — Closed~~ |
 | **#113** | User timezone support | UX |
 | **#115** | Breadcrumb navigation on detail pages | UX |
-| **#117** | Global search | Feature |
-| **#118** | Sticky header on scroll | UX |
+| ~~**#117**~~ | ~~Global search~~ | ~~Feature — Closed~~ |
+| ~~**#118**~~ | ~~Sticky header on scroll~~ | ~~UX — Closed~~ |
 | **#120** | Audit log CSV export | Admin |
 | **#122** | User activity dashboard for admins | Admin |
 | **#124** | Email notification on role change | Email |
@@ -151,9 +164,9 @@ These should be addressed before public launch.
 ## Suggested Implementation Order
 
 ### Pre-Launch Sprint
-1. **#87 + #88** — Privacy policy + Terms of Service (legal requirement)
-2. **#89 + #90** — 404 page + error boundary (user-facing errors)
-3. **#91 + #92** — Footer + mobile hamburger menu (layout completeness)
+1. ~~**#87 + #88** — Privacy policy + Terms of Service — Closed~~
+2. ~~**#89 + #90** — 404 page + error boundary — Closed~~
+3. ~~**#91**~~ + **#92** — Footer (closed) + mobile hamburger menu (open)
 4. **#93** — Content Security Policy headers
 5. ~~**#86** — Favicon (branding, shipped in PR #148)~~
 6. **#95** — Health check endpoint
@@ -161,23 +174,23 @@ These should be addressed before public launch.
 8. **#96 + #97** — Accessibility basics (ARIA + skip link)
 
 ### Post-Launch Priority
-9. **#101 + #102** — Toast notifications + form validation (UX polish)
+9. ~~**#101**~~ + **#102** — Toast notifications (closed) + form validation (open)
 10. **#103** — Env var validation (prevents misconfiguration)
 11. **#100** — Event RSVP (community engagement)
-12. **#98 + #99** — 2FA + account lockout (security hardening)
-13. **#114** — Focus trap in modals (accessibility)
+12. **#98** + ~~**#99**~~ — 2FA (open) + account lockout (closed)
+13. ~~**#114** — Focus trap in modals — Closed~~
 14. **#83** — Automated backups (data safety)
 
 ### Ongoing
 - Documentation (#137, #138, #140, #142)
 - Testing (#33, #144, #146, #147)
 - Email enhancements (#105, #106, #107, #124, #126, #128, #130)
-- UX polish (#113, #115, #117, #118, #134)
+- UX polish (#113, #115, #134)
 
 ## Dependency Chains
 
 - **#116** (background jobs) → **#83** (automated backups), **#112** (ban expiry), **#107** (reminder emails)
-- **#101** (toasts) → **#102** (form validation) benefits from toast feedback
+- ~~**#101** (toasts)~~ → **#102** (form validation) benefits from toast feedback — toasts done
 - **#104** (structured logging) → **#143** (performance monitoring) builds on logging
 - **#93** (CSP headers) should precede public launch
-- **#87 + #88** (legal pages) → **#135** (cookie consent) extends legal compliance
+- ~~**#87 + #88** (legal pages)~~ → **#135** (cookie consent) extends legal compliance — legal pages done

@@ -38,6 +38,8 @@ export async function GET(_request: NextRequest, { params }: Params) {
 	const isOwner = session.user.id === found.id;
 	const callerRole = (session.user as { role?: string }).role ?? "user";
 	const isAdmin = callerRole === "admin";
+	const isModerator = callerRole === "moderator";
+	const isPrivileged = isOwner || isAdmin || isModerator;
 
 	// Private profiles return 404 for non-owner, non-admin callers
 	if (!found.isProfilePublic && !isOwner && !isAdmin) {
@@ -62,6 +64,10 @@ export async function GET(_request: NextRequest, { params }: Params) {
 		response.pendingEmail = found.pendingEmail
 			? safeDecrypt(found.pendingEmail)
 			: null;
+	}
+
+	if (isPrivileged && found.phone) {
+		response.phone = safeDecrypt(found.phone);
 	}
 
 	return NextResponse.json(response);

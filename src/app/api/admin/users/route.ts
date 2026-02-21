@@ -98,6 +98,7 @@ export async function GET(request: NextRequest) {
 				banReason: user.banReason,
 				banExpires: user.banExpires,
 				location: user.location,
+				phone: user.phone,
 				failedLoginAttempts: user.failedLoginAttempts,
 				lockedUntil: user.lockedUntil,
 			})
@@ -113,6 +114,7 @@ export async function GET(request: NextRequest) {
 		users: users.map((u) => ({
 			...u,
 			email: u.email ? safeDecrypt(u.email) : u.email,
+			phone: u.phone ? safeDecrypt(u.phone) : null,
 		})),
 		total: total?.value ?? 0,
 		page,
