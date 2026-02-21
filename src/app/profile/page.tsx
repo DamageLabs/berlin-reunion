@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DeleteAccountModal from "@/components/DeleteAccountModal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -32,6 +33,9 @@ export default function ProfilePage() {
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Visibility state
   const [isProfilePublic, setIsProfilePublic] = useState(false);
@@ -625,6 +629,31 @@ export default function ProfilePage() {
           onConfirm={() => updateVisibility(true)}
           onCancel={() => setShowPublicConfirm(false)}
         />
+
+        {/* Danger Zone */}
+        <div className="border-t border-crimson/30 pt-6 space-y-3">
+          <h2 className="font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-crimson">
+            Danger Zone
+          </h2>
+          <p className="text-sm text-cream/40">
+            Permanently delete your account and all associated data. This action
+            cannot be undone.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full rounded-md border border-crimson/40 bg-crimson/10 px-4 py-2 text-sm font-medium text-crimson hover:bg-crimson/20"
+          >
+            Delete My Account
+          </button>
+        </div>
+
+        {showDeleteModal && (
+          <DeleteAccountModal
+            onClose={() => setShowDeleteModal(false)}
+            onDeleted={() => router.push("/")}
+          />
+        )}
 
         <div className="flex items-center justify-center gap-4">
           <Link
