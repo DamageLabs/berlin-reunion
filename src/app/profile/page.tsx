@@ -415,7 +415,7 @@ export default function ProfilePage() {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Berlin, Germany"
+              placeholder="e.g. Where you live now"
               className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
             />
           </div>
