@@ -19,6 +19,10 @@ import {
 	emailVerificationCode,
 	auditLog,
 	event,
+	survey,
+	surveyQuestion,
+	surveyResponse,
+	surveyAnswer,
 	inviteToken,
 	backupConfig,
 } from "@/db/schema";
@@ -43,6 +47,10 @@ const TABLES = [
 	{ name: "emailVerificationCode", table: emailVerificationCode },
 	{ name: "auditLog", table: auditLog },
 	{ name: "event", table: event },
+	{ name: "survey", table: survey },
+	{ name: "surveyQuestion", table: surveyQuestion },
+	{ name: "surveyResponse", table: surveyResponse },
+	{ name: "surveyAnswer", table: surveyAnswer },
 	{ name: "inviteToken", table: inviteToken },
 	{ name: "backupConfig", table: backupConfig },
 ] as const;
@@ -161,6 +169,10 @@ export const EXPECTED_TABLES = TABLES.map((t) => t.name);
 
 /** FK-safe deletion order (children before parents) */
 export const DELETE_ORDER = [
+	"surveyAnswer",
+	"surveyResponse",
+	"surveyQuestion",
+	"survey",
 	"session",
 	"account",
 	"emailVerificationCode",

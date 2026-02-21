@@ -50,6 +50,9 @@ export default function Header() {
 							<NavLink href="/calendar" current={pathname}>
 								Calendar
 							</NavLink>
+							<NavLink href="/surveys" current={pathname}>
+								Surveys
+							</NavLink>
 							<button
 								onClick={() => setSearchOpen(true)}
 								aria-label="Search"
