@@ -1,69 +1,183 @@
-# Implementation Order
+# Implementation Plan
 
-Prioritized by security, core functionality, UX, and infrastructure readiness.
+Prioritized roadmap of open enhancement issues. All original MVP and post-MVP work is complete (see `MVP-Roadmap.md`).
 
-## Tier 1 — Security & Core Auth
+## Completed Work
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 1 | ~~**#36** Restrict registration to invite-only~~ | ~~The app is a closed community but registration is currently open to anyone. This is the most critical gap — everything else assumes a trusted user base.~~ |
-| 2 | ~~**#29** Rate limiting on auth endpoints~~ | ~~Brute force protection. Should be in place before more users are onboarded.~~ |
-| 2a | ~~**#44** Email verification via 8-digit code~~ | ~~Replace auto-verify on invite accept with an 8-digit alphanumeric code sent via email. Proves email ownership before granting access.~~ |
-| 3 | ~~**#19** Forgot/reset password flow~~ | ~~Core auth flow. Without it, locked-out users have no recovery path. Blocks real usage.~~ |
+All original issues (#19–#61) are closed. Key completed features:
 
-## Tier 2 — Admin Essentials
+- Invite-only registration (#36)
+- Rate limiting (#29)
+- Email verification via 8-digit code (#44)
+- Forgot/reset password (#19)
+- Ban/unban users (#22)
+- Invite revocation (#21)
+- Confirmation dialogs (#24)
+- Audit logging (#32)
+- Email change re-verification (#45)
+- Admin password reset (#54)
+- Login attempt logging (#55)
+- Manual email verification (#56)
+- User deletion (#57)
+- Field encryption (#40)
+- Deployment configuration (#31)
+- Calendar with recurring events (#58)
+- Home dashboard improvements (#59)
+- Profile completion prompt (#60)
+- Event visibility — public/private
+- Styled delete confirmation modal (#80)
+- Member directory with search
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 4 | ~~**#22** Ban/unban users~~ | ~~Schema columns already exist. Admins need this to moderate once invite-only registration brings in real users.~~ |
-| 5 | ~~**#21** Invite revocation~~ | ~~Now that invites are the only entry point (#36), admins need to cancel mistaken ones.~~ |
-| 6 | ~~**#24** Confirmation dialogs~~ | ~~Protects the destructive actions just added (ban, revoke, role change). Low effort, high safety value.~~ |
-| 7 | ~~**#32** Audit logging~~ | ~~With ban/revoke/role-change all live, an audit trail becomes important for accountability.~~ |
-| 7a | ~~**#45** Email change requires re-verification~~ | ~~Users who change their email must re-verify via the existing 8-digit code flow. Depends on #44.~~ |
-| 7b | ~~**#54** Admin/moderator password reset for users~~ | ~~Admins/moderators can reset a user's password when self-service recovery isn't possible. Role hierarchy enforced.~~ |
-| 7c | ~~**#55** Log login attempts and status in audit logs~~ | ~~Capture successful and failed login events for security visibility. Extends audit logging (#32).~~ |
-| 7d | ~~**#56** Admin/moderator manual email verification~~ | ~~Admins/moderators can manually verify a user's email when the normal flow fails.~~ |
-| 7e | ~~**#57** Allow admins to delete users~~ | ~~Permanent user removal for spam, duplicates, or GDPR requests. Cascades sessions/accounts. Audit logged.~~ |
+---
 
-## Tier 3 — Scalability & Data Management
+## Pre-existing Issues
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 8 | **#23** Pagination | Foundation for scaling. Current hardcoded `limit: 100` won't hold. Should come before search. |
-| 9 | **#26** User search and filtering | Builds on pagination. Admin productivity feature as user count grows. |
-| 10 | **#28** Invite resend for expired invites | Quality-of-life for admins, pairs with revocation (#21). Small scope. |
-| 11 | **#30** Session management UI | Users should see and revoke active sessions. Complements rate limiting (#29). |
+| Issue | Title | Status |
+|-------|-------|--------|
+| ~~**#23**~~ | ~~Pagination~~ | ~~Closed — implemented for admin users, invites, audit logs, members~~ |
+| ~~**#25**~~ | ~~Dark mode toggle~~ | ~~Closed~~ |
+| ~~**#26**~~ | ~~User search and filtering~~ | ~~Closed — admin + member directory~~ |
+| ~~**#27**~~ | ~~Loading skeletons~~ | ~~Closed~~ |
+| ~~**#28**~~ | ~~Invite resend for expired invites~~ | ~~Closed~~ |
+| ~~**#30**~~ | ~~Session management UI~~ | ~~Closed — page at /sessions~~ |
+| ~~**#33**~~ | ~~E2E tests with Playwright~~ | ~~Closed~~ |
+| ~~**#41**~~ | ~~React Email templates~~ | ~~Closed~~ |
+| ~~**#61**~~ | ~~Card treatment for hello page~~ | ~~Closed~~ |
+| **#82** | Google Maps integration for user locations | Open |
+| **#83** | Automated database backups (JSON export/restore) | Open |
+| **#84** | User surveys (admin/moderator created) | Open |
+| **#85** | Phone number on user profile (admin/moderator only) | Open |
+| **#86** | 502nd Infantry Regiment crest as favicon | Open — files generated locally, not committed |
+| **#87** | Privacy policy page | Open |
 
-## Tier 4 — UX Polish
+---
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 12 | **#27** Loading skeletons | Perceived performance improvement. No dependencies, can slot in anytime. |
-| 13 | **#25** Dark mode toggle | CSS custom properties already exist. Just needs a toggle + persistence. |
-| 14 | **#41** React Email templates | Developer experience. Best done before adding more email templates but not user-facing urgent. |
-| 14a | **#59** Improve hello page content and layout | Two-column layout, profile photo, member count, quick action grid, events placeholder. Main post-login experience. |
-| 14b | ~~**#60** Profile completion prompt on hello page~~ | ~~Nudge users to fill in missing platoon/location/years. Dismissible, localStorage-persisted.~~ |
-| 14c | **#61** Card treatment for hello page info section | Apply card styling (border, background, shadow) for visual polish. Quick win. |
+## Tier 1 — Critical (Legal, Security, Core UX)
 
-## Tier 5 — Community Features
+These should be addressed before public launch.
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 14a | **#58** Calendar view with recurring events | Admins/moderators create events (e.g. Zoom calls, meetups). All users can view. Adds core community engagement functionality. |
+| Issue | Title | Category |
+|-------|-------|----------|
+| **#87** | Privacy policy page | Legal |
+| **#88** | Terms of Service page | Legal |
+| **#89** | Custom 404 not-found page | UX |
+| **#90** | Error boundary for client/server errors | Reliability |
+| **#91** | Site footer with links | UX |
+| **#92** | Mobile hamburger menu for header | UX |
+| **#93** | Content Security Policy headers | Security |
+| **#94** | Unsubscribe links in emails | Legal/Email |
+| **#95** | Health check API endpoint | Infrastructure |
+| **#96** | ARIA live regions for success/error messages | Accessibility |
+| **#97** | Skip to main content link | Accessibility |
 
-## Tier 6 — Infrastructure (pre-launch)
+---
 
-| Order | Issue | Rationale |
-|-------|-------|-----------|
-| 15 | ~~**#40** Encrypt sensitive fields~~ | ~~Important but complex (blind indexes, data migration). Better tackled once the schema is stable and all features are in.~~ |
-| 16 | ~~**#31** Deployment configuration~~ | ~~Needed before go-live but not before feature work. Depends on knowing the final data persistence strategy.~~ |
-| 17 | **#33** E2E tests with Playwright | Best saved for last — features need to stabilize first or tests will churn constantly. Covers all the flows built above. |
+## Tier 2 — High Priority (Security Hardening, Reliability, Significant UX)
+
+| Issue | Title | Category |
+|-------|-------|----------|
+| **#98** | Two-factor authentication for admin accounts | Security |
+| **#99** | Account lockout after failed login attempts | Security |
+| **#100** | Event RSVP and attendance tracking | Feature |
+| **#101** | Notification toasts for user actions | UX |
+| **#102** | Client-side form validation | UX |
+| **#103** | Environment variable validation at startup | Reliability |
+| **#104** | Structured logging | Infrastructure |
+| **#105** | Email bounce/spam webhook handling (Resend) | Email |
+| **#106** | Welcome email after registration | Email |
+| **#108** | Search and filter in audit log viewer | Admin |
+| **#110** | Account self-deletion for users | Privacy |
+| **#112** | Automated ban expiry | Admin |
+| **#114** | Focus trap in modal dialogs | Accessibility |
+| **#116** | Background job system for scheduled tasks | Infrastructure |
+
+---
+
+## Tier 3 — Medium Priority (Feature Enhancements, Email Workflows)
+
+| Issue | Title | Category |
+|-------|-------|----------|
+| **#83** | Automated database backups | Infrastructure |
+| **#107** | Event reminder emails | Email |
+| **#109** | Event categories and tags | Calendar |
+| **#111** | Calendar export (iCal/ICS) | Calendar |
+| **#113** | User timezone support | UX |
+| **#115** | Breadcrumb navigation on detail pages | UX |
+| **#117** | Global search | Feature |
+| **#118** | Sticky header on scroll | UX |
+| **#120** | Audit log CSV export | Admin |
+| **#122** | User activity dashboard for admins | Admin |
+| **#124** | Email notification on role change | Email |
+| **#126** | Email on login from unfamiliar device | Email/Security |
+| **#128** | Email retry queue with backoff | Email |
+| **#130** | Email notification when user is banned | Email |
+| **#132** | Event cancellation with soft-delete | Calendar |
+| **#134** | Optimistic UI updates | UX |
+| **#136** | WCAG AA color contrast audit | Accessibility |
+| **#139** | Profile photo optimization on upload | Performance |
+| **#141** | Username validation rules | Security |
+| **#143** | Performance monitoring (Sentry/OpenTelemetry) | Infrastructure |
+| **#145** | Request body size limits | Security |
+
+---
+
+## Tier 4 — Nice to Have (Polish, Documentation, Testing)
+
+| Issue | Title | Category |
+|-------|-------|----------|
+| **#82** | Google Maps integration for locations | Feature |
+| **#84** | User surveys | Feature |
+| **#85** | Phone number on profile | Feature |
+| **#86** | 502nd crest as favicon | Branding |
+| **#119** | Bio/about field on profiles | Profile |
+| **#121** | Social links on profiles | Profile |
+| **#123** | Event comments and discussion | Community |
+| **#125** | Batch admin operations | Admin |
+| **#127** | Invite analytics | Admin |
+| **#129** | Admin impersonation UI | Admin |
+| **#131** | Idle session timeout | Security |
+| **#133** | Accessible date/time pickers | Accessibility |
+| **#135** | Cookie consent banner | Legal |
+| **#137** | README with local dev setup | Documentation |
+| **#138** | API reference documentation | Documentation |
+| **#140** | Architecture overview documentation | Documentation |
+| **#142** | Encryption and security guide | Documentation |
+| **#144** | Test coverage reporting | Testing |
+| **#146** | E2E tests for calendar flows | Testing |
+| **#147** | Automated accessibility tests | Testing |
+
+---
+
+## Suggested Implementation Order
+
+### Pre-Launch Sprint
+1. **#87 + #88** — Privacy policy + Terms of Service (legal requirement)
+2. **#89 + #90** — 404 page + error boundary (user-facing errors)
+3. **#91 + #92** — Footer + mobile hamburger menu (layout completeness)
+4. **#93** — Content Security Policy headers
+5. **#86** — Favicon (branding, already generated)
+6. **#95** — Health check endpoint
+7. **#94** — Email unsubscribe links
+8. **#96 + #97** — Accessibility basics (ARIA + skip link)
+
+### Post-Launch Priority
+9. **#101 + #102** — Toast notifications + form validation (UX polish)
+10. **#103** — Env var validation (prevents misconfiguration)
+11. **#100** — Event RSVP (community engagement)
+12. **#98 + #99** — 2FA + account lockout (security hardening)
+13. **#114** — Focus trap in modals (accessibility)
+14. **#83** — Automated backups (data safety)
+
+### Ongoing
+- Documentation (#137, #138, #140, #142)
+- Testing (#33, #144, #146, #147)
+- Email enhancements (#105, #106, #107, #124, #126, #128, #130)
+- UX polish (#113, #115, #117, #118, #134)
 
 ## Dependency Chains
 
-- ~~**#36**~~ → ~~**#21**~~ → **#28**: invite-only registration (done) makes revocation and resend meaningful
-- ~~**#22**~~ + ~~**#21**~~ → ~~**#24**~~: confirmation dialogs protect the destructive actions they gate
-- ~~**#22**~~ + ~~**#21**~~ → ~~**#32**~~: audit logging should capture the admin actions it tracks
-- **#23 → #26**: search/filtering builds on paginated lists
-- ~~**#44**~~ → ~~**#45**~~: email change re-verification reuses the 8-digit code flow
-- ~~**#41 before #19**~~ is nice-to-have (so the reset password email is a React Email component from the start) but not a hard blocker — #19 is now done
+- **#116** (background jobs) → **#83** (automated backups), **#112** (ban expiry), **#107** (reminder emails)
+- **#101** (toasts) → **#102** (form validation) benefits from toast feedback
+- **#104** (structured logging) → **#143** (performance monitoring) builds on logging
+- **#93** (CSP headers) should precede public launch
+- **#87 + #88** (legal pages) → **#135** (cookie consent) extends legal compliance

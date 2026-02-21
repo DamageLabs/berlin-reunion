@@ -110,6 +110,8 @@ BETTER_AUTH_SECRET=your-production-secret-here
 EMAIL_FROM=Berlin Reunion <noreply@berlin-reunion.com>
 ENCRYPTION_KEY=your-encryption-key-here
 BLIND_INDEX_KEY=your-blind-index-key-here
+RATE_LIMIT_WINDOW=60
+RATE_LIMIT_MAX=10
 EOF
 chmod 600 .env
 ```
@@ -128,11 +130,11 @@ After setting the keys, run the encryption migration to encrypt existing data:
 npx tsx scripts/migrate-encryption.ts
 ```
 
-Build and initialize the database:
+Initialize the database and build:
 
 ```bash
-npm run build
 npx drizzle-kit push
+npm run build
 ```
 
 Verify the app starts:
