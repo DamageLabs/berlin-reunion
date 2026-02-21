@@ -27,6 +27,8 @@ const ACTION_LABELS: Record<string, string> = {
   "password.reset": "Password Reset",
   "login.success": "Login Success",
   "login.failure": "Login Failure",
+  "user.lockout": "Account Locked",
+  "user.unlock": "Account Unlocked",
 };
 
 const PAGE_SIZE = 25;
@@ -160,6 +162,8 @@ export default function AuditLogPage() {
           <option value="invite.revoke">Invite Revoked</option>
           <option value="email.change">Email Change</option>
           <option value="password.reset">Password Reset</option>
+          <option value="user.lockout">Account Locked</option>
+          <option value="user.unlock">Account Unlocked</option>
         </select>
       </div>
 

@@ -20,6 +20,8 @@ interface UserRecord {
 	banned?: boolean;
 	banReason?: string;
 	banExpires?: string;
+	failedLoginAttempts?: number;
+	lockedUntil?: string;
 }
 
 interface Invite {
@@ -79,6 +81,10 @@ export default function AdminPage() {
 	} | null>(null);
 	const [inviteConfirmOpen, setInviteConfirmOpen] = useState(false);
 	const [unbanTarget, setUnbanTarget] = useState<{
+		id: string;
+		name: string;
+	} | null>(null);
+	const [unlockTarget, setUnlockTarget] = useState<{
 		id: string;
 		name: string;
 	} | null>(null);
@@ -416,6 +422,32 @@ export default function AdminPage() {
 		}
 	}
 
+	async function handleUnlock(userId: string) {
+		try {
+			const res = await fetch(`/api/users/${userId}/unlock`, {
+				method: "POST",
+			});
+			if (!res.ok) {
+				const data = await res.json();
+				setRoleError(data.error ?? "Failed to unlock user");
+				return;
+			}
+			setUsers((prev) =>
+				prev.map((u) =>
+					u.id === userId
+						? {
+								...u,
+								failedLoginAttempts: 0,
+								lockedUntil: undefined,
+							}
+						: u,
+				),
+			);
+		} catch {
+			setRoleError("Failed to unlock user");
+		}
+	}
+
 	async function handleRevoke(token: string) {
 		setRevokeError("");
 		try {
@@ -703,6 +735,7 @@ export default function AdminPage() {
 						<option value="">All Status</option>
 						<option value="active">Active</option>
 						<option value="banned">Banned</option>
+						<option value="locked">Locked</option>
 					</select>
 				</div>
 				<div className="overflow-x-auto">
@@ -866,6 +899,18 @@ export default function AdminPage() {
 														</span>
 													)}
 												</span>
+											) : u.lockedUntil &&
+											  new Date(u.lockedUntil) > new Date() ? (
+												<span
+													className="text-amber-400 font-medium"
+													title={`Locked until ${new Date(u.lockedUntil).toLocaleString()}`}
+												>
+													Locked
+													<span className="ml-1 text-xs text-cream/40">
+														until{" "}
+														{new Date(u.lockedUntil).toLocaleTimeString()}
+													</span>
+												</span>
 											) : (
 												<span className="text-field-green">Active</span>
 											)}
@@ -893,6 +938,17 @@ export default function AdminPage() {
 																className="rounded border border-crimson px-2 py-0.5 text-xs text-crimson hover:bg-crimson/10"
 															>
 																Ban
+															</button>
+														)}
+														{u.lockedUntil &&
+														  new Date(u.lockedUntil) > new Date() && (
+															<button
+																onClick={() =>
+																	setUnlockTarget({ id: u.id, name: u.name })
+																}
+																className="rounded border border-field-green px-2 py-0.5 text-xs text-field-green hover:bg-field-green/10"
+															>
+																Unlock
 															</button>
 														)}
 														<button
@@ -1129,6 +1185,21 @@ export default function AdminPage() {
 					setUnbanTarget(null);
 				}}
 				onCancel={() => setUnbanTarget(null)}
+			/>
+
+			{/* Unlock Confirmation */}
+			<ConfirmDialog
+				open={unlockTarget !== null}
+				title="Unlock account?"
+				message={unlockTarget ? `Unlock ${unlockTarget.name}\u2019s account? This will reset their failed login attempts and remove the lockout.` : ""}
+				confirmLabel="Unlock"
+				onConfirm={() => {
+					if (unlockTarget) {
+						handleUnlock(unlockTarget.id);
+					}
+					setUnlockTarget(null);
+				}}
+				onCancel={() => setUnlockTarget(null)}
 			/>
 
 			{/* Revoke Invite Confirmation */}
