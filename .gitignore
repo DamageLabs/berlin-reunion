@@ -45,6 +45,7 @@ yarn-error.log*
 data/*.db
 data/*.sqlite
 data/test-invite-token.txt
+data/backups/
 
 # IDE
 .idea/

@@ -18,7 +18,9 @@ export type AuditAction =
 	| "event.update"
 	| "event.delete"
 	| "user.lockout"
-	| "user.unlock";
+	| "user.unlock"
+	| "db.backup"
+	| "db.restore";
 
 export async function logAuditEvent(params: {
 	action: AuditAction;

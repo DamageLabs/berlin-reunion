@@ -589,14 +589,24 @@ export default function AdminPage() {
 				<h1 className="font-[family-name:var(--font-oswald)] text-2xl font-semibold uppercase tracking-wider text-gold">
 					Admin Dashboard
 				</h1>
-				{(role === "admin" || role === "moderator") && (
-					<Link
-						href="/admin/audit"
-						className="text-sm text-gold-dark hover:text-gold"
-					>
-						Audit Log
-					</Link>
-				)}
+				<div className="flex items-center gap-4">
+					{role === "admin" && (
+						<Link
+							href="/admin/backups"
+							className="text-sm text-gold-dark hover:text-gold"
+						>
+							Backups
+						</Link>
+					)}
+					{(role === "admin" || role === "moderator") && (
+						<Link
+							href="/admin/audit"
+							className="text-sm text-gold-dark hover:text-gold"
+						>
+							Audit Log
+						</Link>
+					)}
+				</div>
 			</div>
 
 			{/* Send Invite */}
