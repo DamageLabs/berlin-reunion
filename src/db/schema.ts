@@ -148,6 +148,25 @@ export const event = sqliteTable("event", {
 	visibility: text("visibility").notNull().default("public"), // "public" | "private"
 });
 
+// ─── Backup Config ─────────────────────────────────────────────────────────
+// Singleton row (id = "default") for scheduler settings
+export const backupConfig = sqliteTable("backup_config", {
+	id: text("id").primaryKey(), // always "default"
+	dailyEnabled: integer("daily_enabled", { mode: "boolean" })
+		.notNull()
+		.default(true),
+	weeklyEnabled: integer("weekly_enabled", { mode: "boolean" })
+		.notNull()
+		.default(true),
+	monthlyEnabled: integer("monthly_enabled", { mode: "boolean" })
+		.notNull()
+		.default(true),
+	dailyRetention: integer("daily_retention").notNull().default(7),
+	weeklyRetention: integer("weekly_retention").notNull().default(4),
+	monthlyRetention: integer("monthly_retention").notNull().default(12),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {
