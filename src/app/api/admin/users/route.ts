@@ -5,6 +5,7 @@ import {
 	count,
 	desc,
 	eq,
+	gt,
 	like,
 	or,
 	type SQL,
@@ -77,6 +78,8 @@ export async function GET(request: NextRequest) {
 		conditions.push(eq(user.emailVerified, false));
 	if (statusFilter === "active") conditions.push(eq(user.banned, false));
 	if (statusFilter === "banned") conditions.push(eq(user.banned, true));
+	if (statusFilter === "locked")
+		conditions.push(gt(user.lockedUntil, new Date()));
 
 	const where = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -95,6 +98,8 @@ export async function GET(request: NextRequest) {
 				banReason: user.banReason,
 				banExpires: user.banExpires,
 				location: user.location,
+				failedLoginAttempts: user.failedLoginAttempts,
+				lockedUntil: user.lockedUntil,
 			})
 			.from(user)
 			.where(where)
