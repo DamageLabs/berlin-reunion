@@ -14,7 +14,7 @@ export interface EventRow {
 	location: string | null;
 	recurrenceType: string | null;
 	recurrenceEndAt: Date | null;
-	createdBy: string;
+	createdBy: string | null;
 	updatedBy: string | null;
 	createdAt: Date;
 	updatedAt: Date;
