@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import Skeleton from "@/components/Skeleton";
+import UpcomingEvents from "@/components/calendar/UpcomingEvents";
 
 // ─── Inline SVG Icons ─────────────────────────────────────────────────────────
 
@@ -272,26 +273,19 @@ export default function HomePage() {
                 Member Directory
               </span>
             </Link>
-            <div className="rounded-lg border border-gold-dark/20 p-4 opacity-60">
+            <Link
+              href="/calendar"
+              className="rounded-lg border border-gold-dark/20 p-4 transition-colors hover:border-gold/40 hover:bg-gold-dark/5"
+            >
               <CalendarIcon className="h-6 w-6 text-gold" />
               <span className="mt-3 block font-[family-name:var(--font-oswald)] text-sm font-semibold uppercase tracking-wider text-cream/80">
                 Events
               </span>
-              <span className="mt-1 inline-block rounded-full bg-gold-dark/20 px-2 py-0.5 text-xs text-cream/50">
-                Coming Soon
-              </span>
-            </div>
+            </Link>
           </div>
 
-          {/* Upcoming Events Placeholder */}
-          <div className="rounded-lg border border-gold-dark/20 p-6">
-            <h2 className="font-[family-name:var(--font-oswald)] text-lg font-semibold uppercase tracking-wider text-cream/80">
-              Upcoming Events
-            </h2>
-            <p className="mt-3 text-sm text-cream/40">
-              No upcoming events scheduled.
-            </p>
-          </div>
+          {/* Upcoming Events */}
+          <UpcomingEvents />
         </div>
 
         {/* ── Right Column (1/3) ───────────────────────────────────────── */}

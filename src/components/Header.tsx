@@ -40,6 +40,9 @@ export default function Header() {
               <NavLink href="/home" current={pathname}>
                 Home
               </NavLink>
+              <NavLink href="/calendar" current={pathname}>
+                Calendar
+              </NavLink>
               {(role === "admin" || role === "moderator") && (
                 <NavLink href="/admin" current={pathname}>
                   Admin

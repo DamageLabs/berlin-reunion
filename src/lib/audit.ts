@@ -13,7 +13,10 @@ export type AuditAction =
 	| "password.reset"
 	| "login.success"
 	| "login.failure"
-	| "user.delete";
+	| "user.delete"
+	| "event.create"
+	| "event.update"
+	| "event.delete";
 
 export async function logAuditEvent(params: {
 	action: AuditAction;
