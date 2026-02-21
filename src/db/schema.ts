@@ -124,6 +124,26 @@ export const auditLog = sqliteTable("audit_log", {
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
+// ─── Event ──────────────────────────────────────────────────────────────────
+// Calendar events with optional recurrence
+export const event = sqliteTable("event", {
+	id: text("id").primaryKey(),
+	title: text("title").notNull(),
+	description: text("description"),
+	startAt: integer("start_at", { mode: "timestamp" }).notNull(),
+	durationMinutes: integer("duration_minutes").notNull().default(60),
+	location: text("location"),
+	recurrenceType: text("recurrence_type"), // "daily"|"weekly"|"biweekly"|"monthly"|"yearly"|null
+	recurrenceEndAt: integer("recurrence_end_at", { mode: "timestamp" }),
+	createdBy: text("created_by")
+		.notNull()
+		.references(() => user.id),
+	updatedBy: text("updated_by").references(() => user.id),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+	visibility: text("visibility").notNull().default("public"), // "public" | "private"
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {

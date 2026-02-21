@@ -78,6 +78,20 @@
       "when": 1771624321497,
       "tag": "0010_familiar_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1771660584480,
+      "tag": "0011_opposite_magdalene",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1771661941628,
+      "tag": "0012_huge_jackal",
+      "breakpoints": true
     }
   ]
 }

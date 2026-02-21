@@ -1,0 +1,1 @@
+ALTER TABLE `event` ADD `visibility` text DEFAULT 'public' NOT NULL;
