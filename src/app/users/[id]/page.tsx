@@ -4,6 +4,8 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
+import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
+import ProfileLocationMap from "@/components/maps/ProfileLocationMap";
 
 interface UserProfile {
   id: string;
@@ -11,6 +13,8 @@ interface UserProfile {
   username?: string;
   image?: string;
   location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   platoon?: string;
   yearsServed?: string;
   phone?: string;
@@ -140,6 +144,17 @@ export default function UserProfilePage({
             </div>
           </dl>
         </div>
+
+        {/* Location map */}
+        {profile.latitude != null && profile.longitude != null && (
+          <GoogleMapsProvider>
+            <ProfileLocationMap
+              latitude={profile.latitude}
+              longitude={profile.longitude}
+              name={profile.name}
+            />
+          </GoogleMapsProvider>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col gap-2">

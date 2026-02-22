@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ─── User ───────────────────────────────────────────────────────────────────
 // better-auth core + username plugin + admin plugin
@@ -23,6 +23,8 @@ export const user = sqliteTable("user", {
 	banExpires: integer("ban_expires", { mode: "timestamp" }),
 	// profile
 	location: text("location"),
+	latitude: real("latitude"),
+	longitude: real("longitude"),
 	platoon: text("platoon"),
 	yearsServed: text("years_served"),
 	phone: text("phone"),

@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq, and, ne } from "drizzle-orm";
 import { encrypt, hmacHash } from "@/lib/crypto";
+import { geocodeLocation } from "@/lib/geocode";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -88,6 +89,33 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
   }
 
+  // latitude / longitude — nullable numbers, must be valid ranges
+  if ("latitude" in body) {
+    if (body.latitude === null) {
+      updates.latitude = null;
+    } else if (typeof body.latitude !== "number" || body.latitude < -90 || body.latitude > 90) {
+      return NextResponse.json(
+        { error: "latitude must be a number between -90 and 90" },
+        { status: 400 },
+      );
+    } else {
+      updates.latitude = body.latitude;
+    }
+  }
+
+  if ("longitude" in body) {
+    if (body.longitude === null) {
+      updates.longitude = null;
+    } else if (typeof body.longitude !== "number" || body.longitude < -180 || body.longitude > 180) {
+      return NextResponse.json(
+        { error: "longitude must be a number between -180 and 180" },
+        { status: 400 },
+      );
+    } else {
+      updates.longitude = body.longitude;
+    }
+  }
+
   // phone — optional, strip to digits (keep leading +), require 10+ digits or empty to clear
   if ("phone" in body) {
     if (typeof body.phone !== "string") {
@@ -119,6 +147,21 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       { error: "No valid fields to update" },
       { status: 400 },
     );
+  }
+
+  // Auto-geocode when location changes and no explicit lat/lng provided
+  if ("location" in updates && !("latitude" in updates)) {
+    const loc = updates.location as string;
+    if (loc) {
+      const coords = await geocodeLocation(loc);
+      if (coords) {
+        updates.latitude = coords.latitude;
+        updates.longitude = coords.longitude;
+      }
+    } else {
+      updates.latitude = null;
+      updates.longitude = null;
+    }
   }
 
   await db.update(user).set(updates).where(eq(user.id, targetUserId));

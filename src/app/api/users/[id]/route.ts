@@ -52,6 +52,8 @@ export async function GET(_request: NextRequest, { params }: Params) {
 		username: found.username,
 		image: found.image,
 		location: found.location,
+		latitude: found.latitude,
+		longitude: found.longitude,
 		platoon: found.platoon,
 		yearsServed: found.yearsServed,
 		role: found.role,
