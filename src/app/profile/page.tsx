@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import DeleteAccountModal from "@/components/DeleteAccountModal";
+import GoogleMapsProvider from "@/components/maps/GoogleMapsProvider";
+import LocationAutocomplete, { type LocationData } from "@/components/maps/LocationAutocomplete";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -15,6 +17,8 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [location, setLocation] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [platoon, setPlatoon] = useState("");
   const [yearsServed, setYearsServed] = useState("");
   const [phone, setPhone] = useState("");
@@ -55,6 +59,8 @@ export default function ProfilePage() {
         setName(data.name ?? "");
         setUsername(data.username ?? "");
         setLocation(data.location ?? "");
+        setLatitude(data.latitude ?? null);
+        setLongitude(data.longitude ?? null);
         setPlatoon(data.platoon ?? "");
         setYearsServed(data.yearsServed ?? "");
         setPhone(data.phone ?? "");
@@ -219,6 +225,12 @@ export default function ProfilePage() {
     setUpdatingVisibility(false);
   }
 
+  const handleLocationChange = useCallback((data: LocationData) => {
+    setLocation(data.location);
+    setLatitude(data.latitude);
+    setLongitude(data.longitude);
+  }, []);
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -228,7 +240,7 @@ export default function ProfilePage() {
     const res = await fetch(`/api/users/${session!.user.id}/profile`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, username, location, platoon, yearsServed, phone }),
+      body: JSON.stringify({ name, username, location, latitude, longitude, platoon, yearsServed, phone }),
     });
 
     if (res.ok) {
@@ -416,14 +428,15 @@ export default function ProfilePage() {
             <label htmlFor="location" className="block text-sm font-medium text-cream/70">
               Location
             </label>
-            <input
-              id="location"
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. Where you live now"
-              className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
-            />
+            <GoogleMapsProvider>
+              <LocationAutocomplete
+                id="location"
+                value={location}
+                onChange={handleLocationChange}
+                placeholder="e.g. Where you live now"
+                className="mt-1 block w-full rounded-md border border-gold-dark/30 bg-charcoal-light px-3 py-2 text-sm text-cream shadow-sm focus:border-gold focus:outline-none"
+              />
+            </GoogleMapsProvider>
           </div>
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-cream/70">
