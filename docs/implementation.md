@@ -39,6 +39,9 @@ All original issues (#19–#61) are closed. Key completed features:
 - Global search / command palette (#117)
 - Sticky header on scroll (#118)
 - Privacy policy page (#87)
+- Encrypted phone number on profile (#85)
+- Database backup and restore system (#83)
+- User surveys with results and CSV export (#84)
 
 ---
 
@@ -56,9 +59,9 @@ All original issues (#19–#61) are closed. Key completed features:
 | ~~**#41**~~ | ~~React Email templates~~ | ~~Closed~~ |
 | ~~**#61**~~ | ~~Card treatment for hello page~~ | ~~Closed~~ |
 | **#82** | Google Maps integration for user locations | Open |
-| **#83** | Automated database backups (JSON export/restore) | Open |
-| **#84** | User surveys (admin/moderator created) | Open |
-| **#85** | Phone number on user profile (admin/moderator only) | Open |
+| ~~**#83**~~ | ~~Automated database backups (JSON export/restore)~~ | ~~Closed~~ |
+| ~~**#84**~~ | ~~User surveys (admin/moderator created)~~ | ~~Closed~~ |
+| ~~**#85**~~ | ~~Phone number on user profile (admin/moderator only)~~ | ~~Closed~~ |
 | ~~**#86**~~ | ~~502nd Infantry Regiment crest as favicon~~ | ~~Closed — shipped in PR #148~~ |
 | ~~**#88**~~ | ~~Terms of Service page~~ | ~~Closed~~ |
 | ~~**#87**~~ | ~~Privacy policy page~~ | ~~Closed~~ |
@@ -110,7 +113,7 @@ These should be addressed before public launch.
 
 | Issue | Title | Category |
 |-------|-------|----------|
-| **#83** | Automated database backups | Infrastructure |
+| ~~**#83**~~ | ~~Automated database backups~~ | ~~Infrastructure — Closed~~ |
 | **#107** | Event reminder emails | Email |
 | **#109** | Event categories and tags | Calendar |
 | ~~**#111**~~ | ~~Calendar export (iCal/ICS)~~ | ~~Calendar — Closed~~ |
@@ -139,8 +142,8 @@ These should be addressed before public launch.
 | Issue | Title | Category |
 |-------|-------|----------|
 | **#82** | Google Maps integration for locations | Feature |
-| **#84** | User surveys | Feature |
-| **#85** | Phone number on profile | Feature |
+| ~~**#84**~~ | ~~User surveys~~ | ~~Feature — Closed~~ |
+| ~~**#85**~~ | ~~Phone number on profile~~ | ~~Feature — Closed~~ |
 | ~~**#86**~~ | ~~502nd crest as favicon~~ | ~~Branding — Closed~~ |
 | **#119** | Bio/about field on profiles | Profile |
 | **#121** | Social links on profiles | Profile |
@@ -179,7 +182,7 @@ These should be addressed before public launch.
 11. **#100** — Event RSVP (community engagement)
 12. **#98** + ~~**#99**~~ — 2FA (open) + account lockout (closed)
 13. ~~**#114** — Focus trap in modals — Closed~~
-14. **#83** — Automated backups (data safety)
+14. ~~**#83** — Automated backups (data safety) — Closed~~
 
 ### Ongoing
 - Documentation (#137, #138, #140, #142)
@@ -189,7 +192,7 @@ These should be addressed before public launch.
 
 ## Dependency Chains
 
-- **#116** (background jobs) → **#83** (automated backups), **#112** (ban expiry), **#107** (reminder emails)
+- **#116** (background jobs) → ~~**#83** (automated backups — closed)~~, **#112** (ban expiry), **#107** (reminder emails)
 - ~~**#101** (toasts)~~ → **#102** (form validation) benefits from toast feedback — toasts done
 - **#104** (structured logging) → **#143** (performance monitoring) builds on logging
 - **#93** (CSP headers) should precede public launch
