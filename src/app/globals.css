@@ -37,3 +37,100 @@ body {
   background: #1A1A1A;
   color: #F5F0E1;
 }
+
+/* Prose styles for rendered markdown in dark theme */
+.prose-dark {
+  line-height: 1.7;
+  color: #F5F0E1;
+}
+.prose-dark h1,
+.prose-dark h2,
+.prose-dark h3,
+.prose-dark h4,
+.prose-dark h5,
+.prose-dark h6 {
+  font-family: var(--font-oswald), sans-serif;
+  color: #C8A84E;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.prose-dark h1 { font-size: 1.75rem; }
+.prose-dark h2 { font-size: 1.4rem; }
+.prose-dark h3 { font-size: 1.15rem; }
+.prose-dark a {
+  color: #C8A84E;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-dark a:hover {
+  color: #E8D48B;
+}
+.prose-dark p {
+  margin-bottom: 1em;
+}
+.prose-dark ul,
+.prose-dark ol {
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+.prose-dark ul { list-style-type: disc; }
+.prose-dark ol { list-style-type: decimal; }
+.prose-dark li {
+  margin-bottom: 0.25em;
+}
+.prose-dark code {
+  background: #252525;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.prose-dark pre {
+  background: #252525;
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+.prose-dark pre code {
+  background: none;
+  padding: 0;
+}
+.prose-dark blockquote {
+  border-left: 3px solid #8B6914;
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 1em;
+  color: #F5F0E1cc;
+}
+.prose-dark table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+.prose-dark th,
+.prose-dark td {
+  border: 1px solid rgba(139, 105, 20, 0.3);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.prose-dark th {
+  background: #252525;
+  font-weight: 600;
+  color: #C8A84E;
+}
+.prose-dark hr {
+  border: none;
+  border-top: 1px solid rgba(139, 105, 20, 0.3);
+  margin: 1.5em 0;
+}
+.prose-dark img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+.prose-dark input[type="checkbox"] {
+  accent-color: #C8A84E;
+  margin-right: 0.5em;
+}
