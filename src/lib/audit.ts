@@ -24,7 +24,10 @@ export type AuditAction =
 	| "survey.create"
 	| "survey.update"
 	| "survey.delete"
-	| "survey.respond";
+	| "survey.respond"
+	| "page.create"
+	| "page.update"
+	| "page.delete";
 
 export async function logAuditEvent(params: {
 	action: AuditAction;
