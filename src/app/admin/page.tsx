@@ -600,6 +600,14 @@ export default function AdminPage() {
 					)}
 					{(role === "admin" || role === "moderator") && (
 						<Link
+							href="/admin/pages"
+							className="text-sm text-gold-dark hover:text-gold"
+						>
+							Pages
+						</Link>
+					)}
+					{(role === "admin" || role === "moderator") && (
+						<Link
 							href="/admin/audit"
 							className="text-sm text-gold-dark hover:text-gold"
 						>
