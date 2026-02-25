@@ -53,6 +53,9 @@ export default function Header() {
 							<NavLink href="/surveys" current={pathname}>
 								Surveys
 							</NavLink>
+							<NavLink href="/pages" current={pathname}>
+								Pages
+							</NavLink>
 							<button
 								onClick={() => setSearchOpen(true)}
 								aria-label="Search"
