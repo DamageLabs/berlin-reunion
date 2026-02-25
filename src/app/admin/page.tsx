@@ -590,6 +590,22 @@ export default function AdminPage() {
 					Admin Dashboard
 				</h1>
 				<div className="flex items-center gap-4">
+					{(role === "admin" || role === "moderator") && (
+						<Link
+							href="/admin/activity"
+							className="text-sm text-gold-dark hover:text-gold"
+						>
+							Activity
+						</Link>
+					)}
+					{(role === "admin" || role === "moderator") && (
+						<Link
+							href="/admin/audit"
+							className="text-sm text-gold-dark hover:text-gold"
+						>
+							Audit Log
+						</Link>
+					)}
 					{role === "admin" && (
 						<Link
 							href="/admin/backups"
@@ -604,14 +620,6 @@ export default function AdminPage() {
 							className="text-sm text-gold-dark hover:text-gold"
 						>
 							Pages
-						</Link>
-					)}
-					{(role === "admin" || role === "moderator") && (
-						<Link
-							href="/admin/audit"
-							className="text-sm text-gold-dark hover:text-gold"
-						>
-							Audit Log
 						</Link>
 					)}
 				</div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 
@@ -34,13 +34,30 @@ const ACTION_LABELS: Record<string, string> = {
 const PAGE_SIZE = 25;
 
 export default function AuditLogPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
+          <p className="text-sm text-cream/40">Loading...</p>
+        </div>
+      }
+    >
+      <AuditLogContent />
+    </Suspense>
+  );
+}
+
+function AuditLogContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, isPending } = useSession();
+
+  const initialAction = searchParams.get("action") ?? "";
 
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [actionFilter, setActionFilter] = useState("");
+  const [actionFilter, setActionFilter] = useState(initialAction);
   const [sortBy, setSortBy] = useState("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [loading, setLoading] = useState(false);
