@@ -227,6 +227,21 @@ export const surveyAnswer = sqliteTable("survey_answer", {
 	value: text("value"),
 });
 
+// ─── Page ────────────────────────────────────────────────────────────────────
+// CMS pages managed by moderators/admins, rendered as markdown
+export const page = sqliteTable("page", {
+	id: text("id").primaryKey(),
+	slug: text("slug").notNull().unique(),
+	title: text("title").notNull(),
+	content: text("content").notNull().default(""),
+	published: integer("published", { mode: "boolean" }).notNull().default(false),
+	visibility: text("visibility").notNull().default("public"), // "public" | "private"
+	createdBy: text("created_by").references(() => user.id),
+	updatedBy: text("updated_by").references(() => user.id),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
 // ─── Invite Token ───────────────────────────────────────────────────────────
 // Custom table for the invitation system (not part of better-auth)
 export const inviteToken = sqliteTable("invite_token", {
