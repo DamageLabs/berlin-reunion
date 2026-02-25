@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MarkdownToolbar from "@/components/pages/MarkdownToolbar";
 import { slugify } from "@/lib/slug";
 
 const inputClass =
@@ -41,6 +42,7 @@ export default function PageEditor({
 	const [error, setError] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [slugManual, setSlugManual] = useState(!!initialSlug);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	function handleTitleChange(value: string) {
 		setTitle(value);
@@ -145,12 +147,16 @@ export default function PageEditor({
 					</div>
 				</div>
 				{tab === "write" ? (
-					<textarea
-						value={content}
-						onChange={(e) => setContent(e.target.value)}
-						className={`${inputClass} min-h-[400px] font-mono text-sm`}
-						placeholder="Write your markdown content here..."
-					/>
+					<div>
+						<MarkdownToolbar textareaRef={textareaRef} onUpdate={setContent} />
+						<textarea
+							ref={textareaRef}
+							value={content}
+							onChange={(e) => setContent(e.target.value)}
+							className={`${inputClass} mt-0 min-h-[400px] rounded-t-none font-mono text-sm`}
+							placeholder="Write your markdown content here..."
+						/>
+					</div>
 				) : (
 					<div className="mt-1 min-h-[400px] rounded-md border border-gold-dark/30 bg-charcoal-light p-4">
 						{content ? (
