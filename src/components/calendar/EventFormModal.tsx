@@ -39,6 +39,24 @@ function defaultTime(): string {
 	return `${String(nextHour % 24).padStart(2, "0")}:00`;
 }
 
+/** Auto-format time input: "1435" → "14:35", "930" → "09:30", etc. */
+function formatTimeInput(raw: string): string {
+	// Strip non-digits
+	const digits = raw.replace(/\D/g, "");
+	if (digits.length === 0) return raw;
+	// Already has colon and is valid, keep as-is
+	if (/^\d{1,2}:\d{2}$/.test(raw)) return raw;
+	// 3 digits: H:MM (e.g. "930" → "09:30")
+	if (digits.length === 3) {
+		return `0${digits[0]}:${digits.slice(1)}`;
+	}
+	// 4 digits: HH:MM (e.g. "1435" → "14:35")
+	if (digits.length >= 4) {
+		return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+	}
+	return raw;
+}
+
 /** Combine date (YYYY-MM-DD) and time (HH:MM) into a datetime-local string */
 function combineDatetime(date: string, time: string): string {
 	return `${date}T${time}`;
@@ -102,7 +120,9 @@ export default function EventFormModal({
 			setError("Start date and time are required");
 			return;
 		}
-		if (!/^\d{2}:\d{2}$/.test(startTime)) {
+		const formatted = formatTimeInput(startTime);
+		setStartTime(formatted);
+		if (!/^\d{2}:\d{2}$/.test(formatted)) {
 			setError("Start time must be in HH:MM format");
 			return;
 		}
@@ -110,7 +130,7 @@ export default function EventFormModal({
 		const formData: EventFormData = {
 			title: form.title,
 			description: form.description,
-			startAt: combineDatetime(startDate, startTime),
+			startAt: combineDatetime(startDate, formatted),
 			durationMinutes: form.durationMinutes,
 			location: form.location,
 			recurrenceType: form.recurrenceType,
@@ -190,6 +210,7 @@ export default function EventFormModal({
 									inputMode="numeric"
 									value={startTime}
 									onChange={(e) => setStartTime(e.target.value)}
+									onBlur={() => setStartTime(formatTimeInput(startTime))}
 									placeholder="14:30"
 									pattern="\d{2}:\d{2}"
 									className={`${inputClass} placeholder:text-cream/30`}
@@ -270,6 +291,7 @@ export default function EventFormModal({
 										inputMode="numeric"
 										value={recEndTime}
 										onChange={(e) => setRecEndTime(e.target.value)}
+										onBlur={() => setRecEndTime(formatTimeInput(recEndTime))}
 										placeholder="23:59"
 										pattern="\d{2}:\d{2}"
 										className={`${inputClass} mt-0 placeholder:text-cream/30`}
