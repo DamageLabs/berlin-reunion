@@ -79,18 +79,14 @@ nginx -v   # 1.x
 ## 5. Create the app user
 
 ```bash
-sudo useradd -m -s /bin/bash berlin
-sudo mkdir -p /var/www/berlin-reunion
-sudo chown berlin:berlin /var/www/berlin-reunion
+sudo mkdir -p /var/www/berlin-reunion.com
+sudo chown fusion94:fusion94 /var/www/berlin-reunion.com
 ```
 
 ## 6. Deploy the application
 
-Clone and build as the `berlin` user:
-
 ```bash
-sudo -u berlin bash
-cd /var/www/berlin-reunion
+cd /var/www/berlin-reunion.com
 
 git clone https://github.com/DamageLabs/berlin-reunion.git .
 npm ci
@@ -155,19 +151,26 @@ exit
 ```bash
 sudo tee /etc/systemd/system/berlin-reunion.service > /dev/null <<'EOF'
 [Unit]
-Description=Berlin Reunion Next.js App
+Description=Berlin Reunion (berlin-reunion.com)
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
-User=berlin
-Group=berlin
-WorkingDirectory=/var/www/berlin-reunion
-ExecStart=/usr/bin/npm start
+User=fusion94
+Group=fusion94
+WorkingDirectory=/var/www/berlin-reunion.com
+ExecStart=/usr/local/bin/node node_modules/.bin/next start -p 3050
 Restart=on-failure
 RestartSec=5
+StandardOutput=journal
+StandardError=journal
 Environment=NODE_ENV=production
 Environment=PORT=3050
+
+NoNewPrivileges=true
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
@@ -281,7 +284,7 @@ sudo systemctl restart berlin-reunion
 
 ```bash
 # SQLite safe backup (handles WAL mode correctly)
-sudo -u berlin sqlite3 /var/www/berlin-reunion/data/berlin-reunion.db ".backup /var/www/berlin-reunion/data/backup-$(date +%Y%m%d).db"
+sudo -u berlin sqlite3 /var/www/berlin-reunion.com/data/berlin-reunion.db ".backup /var/www/berlin-reunion.com/data/backup-$(date +%Y%m%d).db"
 ```
 
 Consider a cron job for daily backups:
@@ -289,10 +292,10 @@ Consider a cron job for daily backups:
 ```bash
 sudo tee /etc/cron.daily/berlin-reunion-backup > /dev/null <<'EOF'
 #!/bin/bash
-sudo -u berlin sqlite3 /var/www/berlin-reunion/data/berlin-reunion.db \
-  ".backup /var/www/berlin-reunion/data/backup-$(date +\%Y\%m\%d).db"
+sudo -u berlin sqlite3 /var/www/berlin-reunion.com/data/berlin-reunion.db \
+  ".backup /var/www/berlin-reunion.com/data/backup-$(date +\%Y\%m\%d).db"
 # Keep last 14 days
-find /var/www/berlin-reunion/data -name "backup-*.db" -mtime +14 -delete
+find /var/www/berlin-reunion.com/data -name "backup-*.db" -mtime +14 -delete
 EOF
 sudo chmod +x /etc/cron.daily/berlin-reunion-backup
 ```
@@ -320,7 +323,7 @@ sudo systemctl reload nginx              # nginx (no downtime)
 - [ ] `BETTER_AUTH_SECRET` is a unique random value (not the dev default)
 - [ ] `ENCRYPTION_KEY` and `BLIND_INDEX_KEY` are unique random values
 - [ ] Encryption migration has been run (`npx tsx scripts/migrate-encryption.ts`)
-- [ ] `.env` file is `chmod 600` and owned by the `berlin` user
+- [ ] `.env` file is `chmod 600` and owned by the `fusion94` user
 - [ ] SSH key-only auth (disable password auth in `/etc/ssh/sshd_config`)
 - [ ] `ufw` enabled: `sudo ufw allow OpenSSH && sudo ufw allow 'Nginx Full' && sudo ufw enable`
 - [ ] Unattended security updates: `sudo apt install unattended-upgrades && sudo dpkg-reconfigure -plow unattended-upgrades`
