@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import {
 	Bebas_Neue,
 	Geist,
@@ -62,6 +63,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
+			<Script defer src="https://analytics.damagelabs.io/script.js" data-website-id="91711653-922c-47e0-84b0-4bc15707dcf2" />
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} ${oswald.variable} ${playfair.variable} ${bebas.variable} ${sourceSerif.variable} antialiased`}
 			>
